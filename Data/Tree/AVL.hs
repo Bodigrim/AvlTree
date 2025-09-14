@@ -36,15 +36,6 @@
 -----------------------------------------------------------------------------
 module Data.Tree.AVL
 (module Data.Tree.AVL.Types,
-
- -- * Conversion utilities
-
- -- ** Conversion between /sorted/ AVL trees and Data.Set
- set2AVL,avl2Set,
-
- -- ** Conversion between /sorted/ AVL trees of (key,value) pairs and Data.Map
- map2AVL,avl2Map,
-
  module Data.Tree.AVL.Size,
  module Data.Tree.AVL.Height,
  module Data.Tree.AVL.Read,
@@ -62,12 +53,14 @@ module Data.Tree.AVL
 
  -- * Tree parameter utilities.
  minElements,maxElements,
+
+ -- * Low level Binary Path utilities.
+ -- | This is the low level (unsafe) API used by the 'BAVL' type.
+ BinPath(..),genFindPath,genOpenPath,genOpenPathWith,readPath,writePath,insertPath,deletePath,
+
 ) where
 
 import Prelude -- so haddock finds the symbols there
-
-import qualified Data.Set as BaseSet
-import qualified Data.Map as BaseMap
 
 import Data.Tree.AVL.Types hiding (E,N,P,Z)
 import Data.Tree.AVL.Size
@@ -82,53 +75,14 @@ import Data.Tree.AVL.Split
 import Data.Tree.AVL.Set
 import Data.Tree.AVL.Zipper
 import Data.Tree.AVL.Test.Utils(isBalanced,isSorted,isSortedOK,minElements,maxElements)
+import Data.Tree.AVL.BinPath(BinPath(..),genFindPath,genOpenPath,genOpenPathWith,readPath,writePath,insertPath)
+import Data.Tree.AVL.Internals.DelUtils(deletePath)
 
 #if __GLASGOW_HASKELL__ > 604
 import Data.Traversable
 instance Traversable AVL where
     traverse = traverseAVL
 #endif
-
--- | Convert a 'Data.Set.Set' (from the base package Data.Set module) to a sorted AVL tree.
--- Elements and element ordering are preserved (ascending order is left to right).
---
--- Complexity: O(n)
-set2AVL :: BaseSet.Set a -> AVL a
-set2AVL set = asTreeLenL (BaseSet.size set) (BaseSet.toAscList set)
-
--- | Convert a /sorted/ AVL tree to a 'Data.Set.Set' (from the base package Data.Set module).
--- Elements and element ordering are preserved.
---
--- Complexity: O(n)
-avl2Set :: AVL a -> BaseSet.Set a
-avl2Set avl = BaseSet.fromDistinctAscList (asListL avl)
-
--- | Convert a 'Data.Map.Map' to a sorted (by key) AVL tree.
--- Elements and element ordering are preserved (ascending order is left to right).
---
--- Complexity: O(n)
-map2AVL :: BaseMap.Map key val -> AVL (key,val)
-map2AVL mp = asTreeLenL (BaseMap.size mp) (BaseMap.toAscList mp)
-
--- | Convert a /sorted/ (by key) AVL tree to a 'Data.Map.Map' (from the base package Data.Map module).
--- Elements and element ordering are preserved.
---
--- Complexity: O(n)
-avl2Map :: AVL (key,val) -> BaseMap.Map key val
-avl2Map avl = BaseMap.fromDistinctAscList (asListL avl)
-
-{- Not any more!
--- | Eq is based on equality of the lists produced by 'asListL'. This definition has been placed here
--- to avoid introducing cyclic dependency between Types.hs and List.hs
-instance Eq e => Eq (AVL e) where
- x == y = (size x == size y) && (asListL x == asListL y) -- Compare sizes first as this will usually resolve it
-
--- | Ordering is based on ordering of the lists produced by 'asListL'. This definition has been placed here
--- to avoid introducing cyclic dependency between Types.hs and List.hs
-instance Ord e => Ord (AVL e) where
- x `compare` y =  asListL x `compare` asListL y
--}
-
 
 -- | Show is based on showing the list produced by 'asListL'. This definition has been placed here
 -- to avoid introducing cyclic dependency between Types.hs and List.hs

@@ -115,7 +115,7 @@ import Data.Tree.AVL.Height(height,addHeight)
 import Data.Tree.AVL.Internals.DelUtils(deletePath,popRN,popRZ,popRP,popLN,popLZ,popLP)
 import Data.Tree.AVL.Internals.HJoin(spliceH,joinH)
 import Data.Tree.AVL.Internals.HPush(pushHL,pushHR)
-import Data.Tree.AVL.Internals.BinPath(BinPath(..),genOpenPath,writePath,insertPath,sel,goL,goR)
+import Data.Tree.AVL.BinPath(BinPath(..),genOpenPath,writePath,insertPath,sel,goL,goR)
 
 #ifdef __GLASGOW_HASKELL__
 import GHC.Base

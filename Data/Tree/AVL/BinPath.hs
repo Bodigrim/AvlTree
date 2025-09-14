@@ -10,12 +10,14 @@
 -- Portability :  portable
 --
 -- This module provides a cheap but extremely limited and dangerous alternative
--- to using the Zipper, hence it's for INTERNAL USE ONLY. A BinPath provides
--- a way of finding a particular element in an AVL tree again without doing
--- any comparisons. But a BinPath is ONLY VALID IF THE TREE SHAPE DOES NOT
--- CHANGE.
+-- to using the Zipper. A BinPath provides a way of finding a particular element
+-- in an AVL tree again without doing any comparisons. But a BinPath is ONLY VALID
+-- IF THE TREE SHAPE DOES NOT CHANGE.
+--
+-- See the BAVL type in Data.Tree.AVL.Zipper module for a safer wrapper round these
+-- functions.
 -----------------------------------------------------------------------------
-module Data.Tree.AVL.Internals.BinPath
+module Data.Tree.AVL.BinPath
         (BinPath(..),genFindPath,genOpenPath,genOpenPathWith,readPath,writePath,insertPath,
         --  These are used by deletePath, which currently resides in Data.Tree.AVL.Internals.DelUtils
         sel,goL,goR,
@@ -81,8 +83,7 @@ goR :: Int -> Int
 goR p = shiftL (p-1) 1
 #endif
 
--- | Int fields are search /depth/ and /path bits/ respecively. The /path bits/ consist of a
--- a string of /depth/ bits, left justified. MSB of 0 means go left, MSB of 1 means go right.
+-- | A BinPath is full if the search succeeded, empty otherwise.
 data BinPath a = FullBP   {-# UNPACK #-} !UINT a -- Found
                | EmptyBP  {-# UNPACK #-} !UINT   -- Not Found
 

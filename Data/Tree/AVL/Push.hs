@@ -23,7 +23,7 @@ import Prelude -- so haddock finds the symbols there
 
 import Data.COrdering
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.Internals.BinPath(BinPath(..),genOpenPathWith,writePath,insertPath)
+import Data.Tree.AVL.BinPath(BinPath(..),genOpenPathWith,writePath,insertPath)
 
 {------------------------------------------------------------------------------------------------------------------------------
  -------------------------------------- Notes about Insertion and Rebalancing -------------------------------------------------

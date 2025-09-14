@@ -57,12 +57,6 @@ module Data.Tree.AVL.List
  -- the minimum possible height.
  flatten,
  flatReverse,flatMap,flatMap',
-
- -- * AVL tree based sorting of Lists
- -- | Nothing to do with AVL trees really. But using AVL trees do give an O(n.(log n)) sort
- -- algorithm for free, so here it is. These functions all consume the entire
- -- input list to construct a sorted AVL tree and then read the elements out as a list (lazily).
- genSortAscending,genSortDescending,
 ) where
 
 import Prelude -- so haddock finds the symbols there
@@ -832,25 +826,4 @@ genAsTree c = genPushList c empty
 genPushList :: (e -> e -> COrdering e) -> AVL e -> [e] -> AVL e
 genPushList c avl = foldl' addElem avl
  where addElem t e = genPush (c e) e t
-
--- | Uses the supplied combining comparison to sort list elements into ascending order.
--- Multiple occurences of the same element are eliminated (they are combined in some way).
---
--- @'genSortAscending' c = 'asListL' . 'genAsTree' c@
---
--- Complexity: O(n.(log n))
-{-# INLINE genSortAscending #-}
-genSortAscending :: (e -> e -> COrdering e) -> [e] -> [e]
-genSortAscending c = asListL . genAsTree c
-
--- | Uses the supplied combining comparison to sort list elements into descending order.
--- Multiple occurences of the same element are eliminated (they are combined in some way).
---
--- @'genSortDescending' c = 'asListR' . 'genAsTree' c@
---
--- Complexity: O(n.(log n))
-{-# INLINE genSortDescending #-}
-genSortDescending :: (e -> e -> COrdering e) -> [e] -> [e]
-genSortDescending c = asListR . genAsTree c
-
 

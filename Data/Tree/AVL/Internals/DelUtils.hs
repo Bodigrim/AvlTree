@@ -31,7 +31,7 @@ module Data.Tree.AVL.Internals.DelUtils
         ) where
 
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.Internals.BinPath(sel,goL,goR)
+import Data.Tree.AVL.BinPath(sel,goL,goR)
 
 #ifdef __GLASGOW_HASKELL__
 import GHC.Base
