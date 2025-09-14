@@ -21,5 +21,6 @@
 #define UBT3(x,y,z) (  x,y,z  )
 #define UBT4(w,x,y,z) (  w,x,y,z  )
 #define UBT5(v,w,x,y,z) (  v,w,x,y,z  )
+#define UBT6(u,v,w,x,y,z) (  u,v,w,x,y,z  )
 #define IS_NEG(n) (n  <  0)
 #define LEFT_JUSTIFY_INT(m,n) (shiftL (m) (32-n))

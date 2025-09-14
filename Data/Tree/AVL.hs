@@ -84,6 +84,7 @@ instance Traversable AVL where
     traverse = traverseAVL
 #endif
 
+{- These are now derived since switch to structural equality!
 -- | Show is based on showing the list produced by 'asListL'. This definition has been placed here
 -- to avoid introducing cyclic dependency between Types.hs and List.hs
 instance Show e => Show (AVL e) where
@@ -95,6 +96,7 @@ instance Read e => Read (AVL e) where
  readsPrec _ str = case lex str of
                    [("AVL",str')] -> [(asTreeL es, str'') | (es,str'') <- readList str']
                    _              -> []
+-}
 
 -- | AVL trees are an instance of 'Functor'. This definition has been placed here
 -- to avoid introducing cyclic dependency between Types.hs and List.hs

@@ -9,8 +9,8 @@
 * Eq and Ord Instances now based on strict structural equality (derived)
 * Exposed height related functions
 
-3.1 (Final release)
--------------------
+3.1
+---
 * Exposed BinPath primitives.
 * Removed AVL tree based sorts.
 * Removed Data.Map/Set conversions. This eliminates the containers package dependency.
@@ -20,3 +20,18 @@
 3.2
 ---
 No code changes, just reclaiming ownership and bumping version No.
+
+4.0
+---
+* Changed to derived Read/Show instances (instead of via lists).
+  Hence the instances are incompatible with earlier versions.
+* Added:
+   genDisjointUnion,testGenDisjointUnion
+   genVenn,testGenVenn
+   genVennMaybe,testGenVennMaybe
+   genVennToList,
+   genVennAsList
+   genVennMaybeToList
+   genVennMaybeAsList
+* Added UBT6 cpp macro to ghcdefs/h98defs
+

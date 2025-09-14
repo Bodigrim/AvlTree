@@ -81,6 +81,7 @@ module Data.Tree.AVL.Test.AllTests
 ,testGenTakeGE
 ,testGenTakeLT
 ,testGenUnion
+,testGenDisjointUnion
 ,testGenUnionMaybe
 ,testGenIntersection
 ,testGenIntersectionMaybe
@@ -91,6 +92,8 @@ module Data.Tree.AVL.Test.AllTests
 ,testGenSymDifference
 ,testGenIsSubsetOf
 ,testGenIsSubsetOfBy
+,testGenVenn
+,testGenVennMaybe
 ,testCompareHeight
 ,testShowReadEq
 -- Zipper tests
@@ -206,6 +209,7 @@ allTests =
     testGenTakeGE
     testGenTakeLT
     testGenUnion
+    testGenDisjointUnion
     testGenUnionMaybe
     testGenIntersection
     testGenIntersectionMaybe
@@ -216,6 +220,8 @@ allTests =
     testGenSymDifference
     testGenIsSubsetOf
     testGenIsSubsetOfBy
+    testGenVenn
+    testGenVennMaybe
     testCompareHeight
     testShowReadEq
 -- Zipper tests
@@ -887,6 +893,23 @@ testGenUnion = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                                           in isSortedOK compare u && (size u == ls+rs)
                         unionFst = genUnion fstCC
 
+-- | Test the genDisjointUnion function
+testGenDisjointUnion :: IO ()
+testGenDisjointUnion =
+ let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+     num   = 1000
+ in do title "genDisjointUnion"
+       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+       if and [test (mapAVL' (\n -> 2*n) l) ls (mapAVL' (\n -> 2*n+1) r) rs
+              | (l,ls) <- trees -- 0,2..2*ls-2
+              , (r,rs) <- trees -- 1,3..2*rs-1
+              ]
+        then passed
+        else failed
+    where test  l ls r rs = all (\f -> f l ls r rs) [test1]
+          test1 l ls r rs = and  [test1_ $ mapAVL' (+(2*n)) r | n <- [(-rs)..(ls-1)]]
+           where test1_ r_ = let u = genDisjointUnion compare l r_
+                             in isBalanced u && (asListL u == listUnion (asListL l) (asListL r_))
 
 -- | Test the genSymDifference function
 testGenSymDifference :: IO ()
@@ -1114,6 +1137,50 @@ testGenIsSubsetOfBy = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                                                  (r `isSubsetOf'` l == ((rs<=ls) && (n>=rs)))
                                        where isSubsetOf' = genIsSubsetOfBy (withCC (\m _ -> m /= n))
 
+-- | Test the genVenn function
+testGenVenn :: IO ()
+testGenVenn =
+ let trees = concatMap (\(_,ts) -> ts) (take 5 allAVL) -- All trees of height 4 or less = 335 trees (112,225 pairs)
+     num   = length trees
+ in do title "genVenn"
+       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+       if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+   where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2]
+         test1 l ls r rs = let (lr,i,rl) = venn l r
+                           in and [all isBalanced [lr,i,rl]
+                                  ,asListL lr == listDiff         [0..ls-1] [0..rs-1]
+                                  ,asListL i  == listIntersection [0..ls-1] [0..rs-1]
+                                  ,asListL rl == listDiff         [0..rs-1] [0..ls-1]
+                                  ]
+         test2 l ls r rs = and  [test2_ $ mapAVL' (n+) r | n <- [(-rs)..ls]]
+          where test2_ r_ = let (lr,i,rl) = venn l r_
+                            in and [all isBalanced [lr,i,rl]
+                                   ,asListL lr == listDiff         (asListL l ) (asListL r_)
+                                   ,asListL i  == listIntersection (asListL l ) (asListL r_)
+                                   ,asListL rl == listDiff         (asListL r_) (asListL l )
+                                   ]
+         venn = genVenn fstCC
+
+-- | Test the genVennMaybe function
+testGenVennMaybe :: IO ()
+testGenVennMaybe =
+ let trees = concatMap (\(_,ts) -> ts) (take 5 allAVL) -- All trees of height 4 or less = 335 trees (112,225 pairs)
+     num   = length trees
+ in do title "genVennMaybe"
+       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+       if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+   where test  l ls r rs = and [t cmp l ls r rs| t<-[test1], cmp<-[cmpAll,cmpNone,cmpEven,cmpOdd]]
+         test1 cmp l ls r rs = and  [test1_ $ mapAVL' (n+) r | n <- [(-rs)..ls]]
+          where test1_ r_ = let (lr,i,rl) = genVennMaybe cmp  l r_
+                            in and [all isBalanced [lr,i,rl]
+                                   ,asListL lr == listDiff (asListL l ) (asListL r_)
+                                   ,asListL rl == listDiff (asListL r_) (asListL l )
+                                   ,asListL i  == listIntersectionMaybe cmp (asListL l ) (asListL r_)
+                                   ]
+         cmpAll  = withCC' (\x _ -> Just x)
+         cmpNone = withCC' (\_ _ -> Nothing)
+         cmpEven = withCC' (\x _ -> if even x then Just x else Nothing)
+         cmpOdd  = withCC' (\x _ -> if odd  x then Just x else Nothing)
 
 -- | Test compareHeight function
 testCompareHeight :: IO ()
@@ -1402,4 +1469,42 @@ passed = putStrLn "Passed"
 failed :: IO ()
 failed = do putStrLn "!! FAILED !!"
             exitFailure
+
+
+-- List union (of ascending Ints)
+listUnion :: [Int] -> [Int] -> [Int]
+listUnion [] ys = ys
+listUnion xs [] = xs
+listUnion xs@(x:xs') ys@(y:ys') = case compare x y of
+                                  LT -> x:(listUnion xs' ys )
+			          EQ -> x:(listUnion xs' ys') -- Eliminate duplicates
+                                  GT -> y:(listUnion xs  ys')
+
+-- List intersection (of ascending Ints)
+listIntersection :: [Int] -> [Int] -> [Int]
+listIntersection [] _ = []
+listIntersection _ [] = []
+listIntersection xs@(x:xs') ys@(y:ys') = case compare x y of
+                                         LT ->    listIntersection xs' ys
+			                 EQ -> x:(listIntersection xs' ys')
+                                         GT ->    listIntersection xs  ys'
+
+-- List intersection maybe (of ascending Ints)
+listIntersectionMaybe :: (Int -> Int -> COrdering (Maybe Int)) -> [Int] -> [Int] -> [Int]
+listIntersectionMaybe _ [] _ = []
+listIntersectionMaybe _ _ [] = []
+listIntersectionMaybe cmp xs@(x:xs') ys@(y:ys') = case cmp x y of
+                                                  Lt          ->    listIntersectionMaybe cmp xs' ys
+			                          Eq (Just i) -> i:(listIntersectionMaybe cmp xs' ys')
+			                          Eq Nothing  ->    listIntersectionMaybe cmp xs' ys'
+                                                  Gt          ->    listIntersectionMaybe cmp xs  ys'
+
+-- List Difference (of ascending Ints)
+listDiff :: [Int] -> [Int] -> [Int]
+listDiff [] _  = []
+listDiff xs [] = xs
+listDiff xs@(x:xs') ys@(y:ys') = case compare x y of
+                                 LT -> x:(listDiff xs' ys)
+			         EQ ->    listDiff xs' ys'
+                                 GT ->    listDiff xs  ys'
 

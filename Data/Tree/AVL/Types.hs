@@ -94,7 +94,7 @@ data AVL e = E                      -- ^ Empty Tree
            | N (AVL e) e (AVL e)    -- ^ BF=-1 (right height > left height)
            | Z (AVL e) e (AVL e)    -- ^ BF= 0
            | P (AVL e) e (AVL e)    -- ^ BF=+1 (left height > right height)
-           deriving(Eq,Ord)
+           deriving(Eq,Ord,Show,Read)
 
 -- A name for the AVL type constructor, fully qualified
 avlTyConName :: String
