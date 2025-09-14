@@ -35,3 +35,6 @@ No code changes, just reclaiming ownership and bumping version No.
    genVennMaybeAsList
 * Added UBT6 cpp macro to ghcdefs/h98defs
 
+4.1
+---
+* Added missing strictness to genVenn,genVennMaybe

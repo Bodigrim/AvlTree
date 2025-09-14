@@ -546,7 +546,8 @@ genVenn c = gu where  -- This is to avoid O(log n) height calculation for empty 
  gu t0@(P _  _ r0) t1@(Z l1 _ _ ) = gu_ t0 (addHeight L(2) r0) t1 (addHeight L(1) l1)
  gu t0@(P _  _ r0) t1@(P _  _ r1) = gu_ t0 (addHeight L(2) r0) t1 (addHeight L(2) r1)
  gu_ t0 h0 t1 h1 = case vennH c [] L(0) t0 h0 t1 h1 of
-                   UBT6(tab,_,cs,cl,tba,_) -> (tab,asTreeLenL ASINT(cl) cs,tba)
+                   UBT6(tab,_,cs,cl,tba,_) -> let tc = asTreeLenL ASINT(cl) cs
+                                              in tc `seq` (tab,tc,tba)
 
 -- | Similar to 'genVenn', but intersection elements for which the combining comparison
 -- returns @('Eq' 'Nothing')@ are deleted from the intersection result.
@@ -566,7 +567,8 @@ genVennMaybe c = gu where -- This is to avoid O(log n) height calculation for em
  gu t0@(P _  _ r0) t1@(Z l1 _ _ ) = gu_ t0 (addHeight L(2) r0) t1 (addHeight L(1) l1)
  gu t0@(P _  _ r0) t1@(P _  _ r1) = gu_ t0 (addHeight L(2) r0) t1 (addHeight L(2) r1)
  gu_ t0 h0 t1 h1 = case vennMaybeH c [] L(0) t0 h0 t1 h1 of
-                   UBT6(tab,_,cs,cl,tba,_) -> (tab,asTreeLenL ASINT(cl) cs,tba)
+                   UBT6(tab,_,cs,cl,tba,_) -> let tc = asTreeLenL ASINT(cl) cs
+                                              in tc `seq` (tab,tc,tba)
 
 -- | Same as 'genVenn', but prepends the intersection component to the supplied list
 -- in ascending order.
