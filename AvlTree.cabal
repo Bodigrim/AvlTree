@@ -1,68 +1,81 @@
-Name:               AvlTree
-Version:            4.2
-Cabal-Version:      >= 1.2
-Build-Type:         Simple
-License:            BSD3
-License-File:       LICENSE
-Copyright:          (c) Adrian Hey 2004-2008
-Author:             Adrian Hey
-Maintainer:         Adrian Hey http://homepages.nildram.co.uk/~ahey/em.png
-Stability:          Stable
-Homepage:
-Package-Url:
-Synopsis:           Balanced binary trees using the AVL algorithm.
-Description:        A comprehensive and efficient implementation of AVL trees. The raw AVL
-                    API has been designed with efficiency and generality in mind, not elagance or
-                    safety. It contains all the stuff you really don't want to write yourself if you
-                    can avoid it. This library may be useful for rolling your own Sets, Maps, Sequences,
-                    Queues (for example).
-Category:           Data Structures
-Tested-With:        GHC == 6.8.3, GHC == 6.8.2, GHC == 6.8.1
-Data-Files:
-Extra-Source-Files: AUTHORS, CHANGELOG, MasterTable.txt, Test/Test.hs, include/ghcdefs.h, include/h98defs.h
-Extra-Tmp-Files:
+cabal-version:      2.2
+name:               AvlTree
+version:            4.3
+license:            BSD-3-Clause
+license-file:       LICENSE
+copyright:          (c) Adrian Hey 2004-2008
+maintainer:         Bodigrim
+author:             Adrian Hey
+tested-with:
+    ghc ==8.4.4 ghc ==8.6.5 ghc ==8.8.4 ghc ==8.10.1 ghc ==9.0.2
+    ghc ==9.2.8 ghc ==9.4.8 ghc ==9.6.7 ghc ==9.8.4 ghc ==9.10.3
+    ghc ==9.12.2 ghc ==9.14.1
 
-Library
- Buildable:          True
- Build-Depends:      base, COrdering >= 2.3
- Exposed-Modules:    Data.Tree.AVL,
-                     Data.Tree.AVL.Test.AllTests,
-                     Data.Tree.AVL.Test.Counter
- Other-Modules:      Data.Tree.AVLX,
-                     Data.Tree.AVL.Delete,
-                     Data.Tree.AVL.Join,
-                     Data.Tree.AVL.List,
-                     Data.Tree.AVL.Push,
-                     Data.Tree.AVL.Read,
-                     Data.Tree.AVL.Set,
-                     Data.Tree.AVL.Size,
-                     Data.Tree.AVL.Height,
-                     Data.Tree.AVL.Split,
-                     Data.Tree.AVL.Types,
-                     Data.Tree.AVL.Write,
-                     Data.Tree.AVL.Zipper,
-                     Data.Tree.AVL.BinPath,
-                     Data.Tree.AVL.Deprecated,
-                     Data.Tree.AVL.Test.Utils,
-                     Data.Tree.AVL.Internals.DelUtils,
-                     Data.Tree.AVL.Internals.HAVL,
-                     Data.Tree.AVL.Internals.HJoin,
-                     Data.Tree.AVL.Internals.HPush,
-                     Data.Tree.AVL.Internals.HSet
- Extensions:         CPP
- Hs-Source-Dirs:     .
- Build-Tools:
- Ghc-Options:        -Wall
- Ghc-Prof-Options:
- Ghc-Shared-Options:
- Hugs-Options:
- Nhc98-Options:
- Includes:
- Install-Includes:
- Include-Dirs:       include
- C-Sources:
- Extra-Libraries:
- Extra-Lib-Dirs:
- CC-Options:
- LD-Options:
- Pkgconfig-Depends:
+synopsis:           Balanced binary trees using the AVL algorithm.
+description:
+    A comprehensive and efficient implementation of AVL trees. The raw AVL
+    API has been designed with efficiency and generality in mind, not elagance or
+    safety. It contains all the stuff you really don't want to write yourself if you
+    can avoid it. This library may be useful for rolling your own Sets, Maps, Sequences,
+    Queues (for example).
+
+category:           Data
+build-type:         Simple
+extra-source-files: include/ghcdefs.h
+extra-doc-files:
+    AUTHORS
+    CHANGELOG.md
+    MasterTable.txt
+
+source-repository head
+    type:     git
+    location: https://github.com/Bodigrim/AvlTree.git
+
+library
+    exposed-modules:
+        Data.Tree.AVL
+        Data.Tree.AVL.Internals.Types
+
+    hs-source-dirs:     src
+    other-modules:
+        Data.Tree.AVL.Write
+        Data.Tree.AVL.Zipper
+        Data.Tree.AVL.Delete
+        Data.Tree.AVL.Join
+        Data.Tree.AVL.List
+        Data.Tree.AVL.Push
+        Data.Tree.AVL.Internals.HAVL
+        Data.Tree.AVL.Read
+        Data.Tree.AVL.Set
+        Data.Tree.AVL.Size
+        Data.Tree.AVL.Height
+        Data.Tree.AVL.Split
+        Data.Tree.AVL.Utils
+        Data.Tree.AVL.BinPath
+        Data.Tree.AVL.Internals.DelUtils
+        Data.Tree.AVL.Internals.HJoin
+        Data.Tree.AVL.Internals.HPush
+        Data.Tree.AVL.Internals.HSet
+        Data.Tree.AVL.Test.Utils
+
+    default-language:   Haskell2010
+    default-extensions: CPP MagicHash UnboxedTuples
+    include-dirs:       include
+    ghc-options:        -Wall
+    build-depends:
+        base >=4.11 && <5,
+        COrdering >=2.3 && <2.4
+
+test-suite AvlTree-tests
+    type:               exitcode-stdio-1.0
+    main-is:            AllTests.hs
+    hs-source-dirs:     tests
+    other-modules:      Utils
+    default-language:   Haskell2010
+    default-extensions: CPP MagicHash UnboxedTuples
+    include-dirs:       include
+    ghc-options:        -Wall
+    build-depends:
+        base >=4.11 && <5,
+        COrdering >=2.3 && <2.4,
+        AvlTree
