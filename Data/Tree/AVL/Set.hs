@@ -46,7 +46,7 @@ module Data.Tree.AVL.Set
 import Prelude -- so haddock finds the symbols there
 
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.Internals.HeightUtils(addHeight)
+import Data.Tree.AVL.Height(addHeight)
 import Data.Tree.AVL.Internals.HJoin(spliceH)
 import Data.Tree.AVL.Internals.HSet(unionH,unionMaybeH,
                                     intersectionH,intersectionMaybeH,

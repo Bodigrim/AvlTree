@@ -82,23 +82,19 @@ import Data.Monoid
 -- where appropriate), or using strict variants of the combinators defined in "Data.COrdering",
 -- or using 'seq' etc. in your own code (in any combining comparisons you define, for example).
 --
--- A note about 'Eq' and 'Ord' class instances.
+-- The Eq and Ord instances.
 --
--- For 'AVL' trees the defined instances of 'Ord' and 'Eq' are based on the lists that are produced using
--- the 'Data.Tree.AVL.List.asListL' function (it could just as well have been 'Data.Tree.AVL.List.asListR',
--- the choice is arbitrary but I can only chose one). This means that two trees which contain the same elements
--- in the same order are equal regardless of detailed tree structure. The same principle has been applied to
--- the instances of 'Read' and 'Show'. Unfortunately, this has the undesirable and non-intuitive effect
--- of making \"equal\" trees potentially distinguishable using some functions (such as height).
--- All such functions have been placed in the Data.Tree.AVL.Internals modules, which are not
--- included in the main "Data.Tree.AVL" wrapper. For all \"normal\" functions (f) exported by "Data.Tree.AVL"
--- it is safe to assume that if a and b are 'AVL' trees then (a == b) implies (f a == f b), provided the same
--- is true for the tree elements.
+-- Begining with version 3.0 these are now derived, and hence are defined in terms of
+-- strict structural equality, rather than observational equivalence. The reason for
+-- this change is that the observational equivalence abstraction was technically breakable
+-- with the exposed API. But since this change, some functions which were previously
+-- considered unsafe have become safe to expose (those that measure tree height).
 --
 data AVL e = E                      -- ^ Empty Tree
            | N (AVL e) e (AVL e)    -- ^ BF=-1 (right height > left height)
            | Z (AVL e) e (AVL e)    -- ^ BF= 0
            | P (AVL e) e (AVL e)    -- ^ BF=+1 (left height > right height)
+           deriving(Eq,Ord)
 
 -- A name for the AVL type constructor, fully qualified
 avlTyConName :: String

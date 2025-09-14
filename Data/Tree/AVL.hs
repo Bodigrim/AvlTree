@@ -33,7 +33,6 @@
 -- mySelector :: (key,val) -> COrdering val    Tree elements are (key,val) pairs
 -- @
 --
--- Please read the notes in the "Data.Tree.AVL.Types" module documentation too.
 -----------------------------------------------------------------------------
 module Data.Tree.AVL
 (module Data.Tree.AVL.Types,
@@ -47,6 +46,7 @@ module Data.Tree.AVL
  map2AVL,avl2Map,
 
  module Data.Tree.AVL.Size,
+ module Data.Tree.AVL.Height,
  module Data.Tree.AVL.Read,
  module Data.Tree.AVL.Write,
  module Data.Tree.AVL.Push,
@@ -71,6 +71,7 @@ import qualified Data.Map as BaseMap
 
 import Data.Tree.AVL.Types hiding (E,N,P,Z)
 import Data.Tree.AVL.Size
+import Data.Tree.AVL.Height
 import Data.Tree.AVL.Read
 import Data.Tree.AVL.Write
 import Data.Tree.AVL.Push
@@ -116,6 +117,7 @@ map2AVL mp = asTreeLenL (BaseMap.size mp) (BaseMap.toAscList mp)
 avl2Map :: AVL (key,val) -> BaseMap.Map key val
 avl2Map avl = BaseMap.fromDistinctAscList (asListL avl)
 
+{- Not any more!
 -- | Eq is based on equality of the lists produced by 'asListL'. This definition has been placed here
 -- to avoid introducing cyclic dependency between Types.hs and List.hs
 instance Eq e => Eq (AVL e) where
@@ -125,6 +127,8 @@ instance Eq e => Eq (AVL e) where
 -- to avoid introducing cyclic dependency between Types.hs and List.hs
 instance Ord e => Ord (AVL e) where
  x `compare` y =  asListL x `compare` asListL y
+-}
+
 
 -- | Show is based on showing the list produced by 'asListL'. This definition has been placed here
 -- to avoid introducing cyclic dependency between Types.hs and List.hs

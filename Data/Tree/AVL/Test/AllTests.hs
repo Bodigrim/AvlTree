@@ -1042,7 +1042,7 @@ testGenDifference = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                                                    mn = min (ls-1) (2*rs-1)
                                                in isBalanced u  &&
                                                   (asListL u == filter even [0..mn] ++ [mn+1..ls-1]) &&
-                                                  isBalanced u_ && (u_ == l_)
+                                                  isBalanced u_ && (asListL u_ == asListL l_)
                              difference = genDifference compare
 
 -- | Test the genDifferenceMaybe function
@@ -1075,7 +1075,7 @@ testGenDifferenceMaybe =
                                 mx = max (mn+1) 0
                                 listfil = filter odd [0..mn]
                                 listrem = [mx..ls-1]
-                            in isBalanced u && isBalanced u_ && (u_ == l_) &&
+                            in isBalanced u && isBalanced u_ && (asListL u_ == asListL l_) &&
                                (asListL u == listfil ++ listrem)
 
 -- | Test the genIsSubsetOf function

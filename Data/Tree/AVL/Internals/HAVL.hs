@@ -19,7 +19,7 @@ module Data.Tree.AVL.Internals.HAVL
         ) where
 
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.Internals.HeightUtils(addHeight)
+import Data.Tree.AVL.Height(addHeight)
 import Data.Tree.AVL.Internals.HJoin(spliceH,joinH)
 import Data.Tree.AVL.Internals.HPush(pushHL,pushHR)
 

@@ -18,7 +18,7 @@ import Data.Tree.AVL.Types(AVL(..))
 import Data.Tree.AVL.Size(addSize)
 import Data.Tree.AVL.List(asTreeLenL,toListL)
 import Data.Tree.AVL.Internals.DelUtils(popHLN,popHLZ,popHLP)
-import Data.Tree.AVL.Internals.HeightUtils(height,addHeight)
+import Data.Tree.AVL.Height(height,addHeight)
 import Data.Tree.AVL.Internals.HJoin(joinH',spliceH)
 
 import Data.List(foldl')

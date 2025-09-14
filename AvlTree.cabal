@@ -1,5 +1,5 @@
 Name:               AvlTree
-Version:            2.4
+Version:            3.0
 Cabal-Version:      >= 1.2
 Build-Type:         Simple
 License:            BSD3
@@ -10,16 +10,16 @@ Maintainer:         http://homepages.nildram.co.uk/~ahey/em.png
 Stability:          Stable
 Homepage:           http://www.haskell.org/haskellwiki/AvlTree
 Package-Url:
-Synopsis:           Balanced binary trees using AVL algorithm.
+Synopsis:           Balanced binary trees using the AVL algorithm.
 Description:        A comprehensive library and efficient implementation of AVL trees. The raw AVL
-                    API has been designed with efficiency and generality in mind, not elagance. It
-                    contains all the stuff you really don't want to write yourself if you can avoid
-                    it. This library may be useful for rolling your own Sets, Maps, Sequences, Queues
-                    (for example).
+                    API has been designed with efficiency and generality in mind, not elagance or
+                    safety. It contains all the stuff you really don't want to write yourself if you
+                    can avoid it. This library may be useful for rolling your own Sets, Maps, Sequences,
+                    Queues (for example).
 Category:           Data Structures
 Tested-With:        GHC == 6.8.2, GHC == 6.8.1
 Data-Files:
-Extra-Source-Files: AUTHORS, CHANGELOG, Test/Test.hs, include/ghcdefs.h, include/h98defs.h
+Extra-Source-Files: AUTHORS, CHANGELOG, MasterTable.txt, Test/Test.hs, include/ghcdefs.h, include/h98defs.h
 Extra-Tmp-Files:
 Author:             Adrian Hey
 
@@ -37,6 +37,7 @@ Library
                      Data.Tree.AVL.Read,
                      Data.Tree.AVL.Set,
                      Data.Tree.AVL.Size,
+                     Data.Tree.AVL.Height,
                      Data.Tree.AVL.Split,
                      Data.Tree.AVL.Types,
                      Data.Tree.AVL.Write,
@@ -47,12 +48,11 @@ Library
                      Data.Tree.AVL.Internals.HAVL,
                      Data.Tree.AVL.Internals.HJoin,
                      Data.Tree.AVL.Internals.HPush,
-                     Data.Tree.AVL.Internals.HSet,
-                     Data.Tree.AVL.Internals.HeightUtils
+                     Data.Tree.AVL.Internals.HSet
  Extensions:         CPP
  Hs-Source-Dirs:     .
  Build-Tools:
- Ghc-Options:        -O -Wall -split-objs
+ Ghc-Options:        -Wall
  Ghc-Prof-Options:
  Ghc-Shared-Options:
  Hugs-Options:

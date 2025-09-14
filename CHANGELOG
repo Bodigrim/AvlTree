@@ -2,3 +2,13 @@
 ---
 * Initial Hackage/Cabal release.
   Version set to 2.4 to distinguish from the 2.3 (non-cabal) release on my home page.
+
+3.0
+---
+* Included MasterTable.txt in the distro.
+* Eq and Ord Instances now based on strict structural equality (derived)
+* Exposed height related functions
+
+
+
+

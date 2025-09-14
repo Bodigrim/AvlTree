@@ -17,7 +17,7 @@ module Data.Tree.AVL.Size
         ) where
 
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.Internals.HeightUtils(addHeight)
+import Data.Tree.AVL.Height(addHeight)
 
 #ifdef __GLASGOW_HASKELL__
 import GHC.Base

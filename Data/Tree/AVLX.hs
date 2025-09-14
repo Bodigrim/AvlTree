@@ -14,7 +14,6 @@
 module Data.Tree.AVLX
 (module Data.Tree.AVL -- The normal user AVL API
 -- + Normally Hidden Modules
-,module Data.Tree.AVL.Internals.HeightUtils
 ,module Data.Tree.AVL.Internals.DelUtils
 ,module Data.Tree.AVL.Internals.HPush
 ,module Data.Tree.AVL.Internals.HSet
@@ -30,7 +29,6 @@ module Data.Tree.AVLX
 import Data.Tree.AVL hiding (AVL)
 import Data.Tree.AVL.Types(AVL(..))        -- We want constructors exposed
 
-import Data.Tree.AVL.Internals.HeightUtils
 import Data.Tree.AVL.Internals.DelUtils
 import Data.Tree.AVL.Internals.HPush
 import Data.Tree.AVL.Internals.HSet

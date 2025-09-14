@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Tree.AVL.Internals.HeightUtils
+-- Module      :  Data.Tree.AVL.Height
 -- Copyright   :  (c) Adrian Hey 2004,2005
 -- License     :  BSD3
 --
@@ -15,8 +15,9 @@
 -- because they violate the policy for AVL tree equality used elsewhere in this library.
 -- You need to import this module explicitly if you want to use any of these functions.
 -----------------------------------------------------------------------------
-module Data.Tree.AVL.Internals.HeightUtils
-        (height,addHeight,compareHeight, -- heightInt,
+module Data.Tree.AVL.Height
+        (-- * AVL tree height utilities.
+         height,addHeight,compareHeight, -- heightInt,
         ) where
 
 import Data.Tree.AVL.Types(AVL(..))
