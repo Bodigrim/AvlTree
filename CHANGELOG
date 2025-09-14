@@ -1,0 +1,4 @@
+2.4
+---
+* Initial Hackage/Cabal release.
+  Version set to 2.4 to distinguish from the 2.3 (non-cabal) release on my home page.
