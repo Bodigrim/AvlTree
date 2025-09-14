@@ -1,12 +1,12 @@
 Name:               AvlTree
-Version:            3.1
+Version:            3.2
 Cabal-Version:      >= 1.2
 Build-Type:         Simple
 License:            BSD3
 License-File:       LICENSE
 Copyright:          (c) Adrian Hey 2004-2008
 Author:             Adrian Hey
-Maintainer:
+Maintainer:         Adrian Hey http://homepages.nildram.co.uk/~ahey/em.png
 Stability:          Stable
 Homepage:
 Package-Url:
@@ -15,10 +15,9 @@ Description:        A comprehensive and efficient implementation of AVL trees. T
                     API has been designed with efficiency and generality in mind, not elagance or
                     safety. It contains all the stuff you really don't want to write yourself if you
                     can avoid it. This library may be useful for rolling your own Sets, Maps, Sequences,
-                    Queues (for example). This package is no longer actively maintained and will be
-                    tagged as such as soon as Hackage has this feature.
+                    Queues (for example).
 Category:           Data Structures
-Tested-With:        GHC == 6.8.2, GHC == 6.8.1
+Tested-With:        GHC == 6.8.3, GHC == 6.8.2, GHC == 6.8.1
 Data-Files:
 Extra-Source-Files: AUTHORS, CHANGELOG, MasterTable.txt, Test/Test.hs, include/ghcdefs.h, include/h98defs.h
 Extra-Tmp-Files:
