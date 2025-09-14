@@ -17,13 +17,13 @@ module Data.Tree.AVL.Set
  -- as a field value in a record).
 
  -- ** Union
- genUnion,genUnionMaybe,genDisjointUnion,genUnions,
+ union,unionMaybe,disjointUnion,unions,
 
  -- ** Difference
- genDifference,genDifferenceMaybe,genSymDifference,
+ difference,differenceMaybe,symDifference,
 
  -- ** Intersection
- genIntersection,genIntersectionMaybe,
+ intersection,intersectionMaybe,
 
  -- *** Intersection with the result as a list
  -- | Sometimes you don\'t want intersection to give a tree, particularly if the
@@ -35,8 +35,8 @@ module Data.Tree.AVL.Set
  -- new tree, whereas with the others the resulting tree will typically share sub-trees
  -- with one or both of the originals. (Of course the results of the others can easily be
  -- converted to a list too if required.)
- genIntersectionToListL,genIntersectionAsListL,
- genIntersectionMaybeToListL,genIntersectionMaybeAsListL,
+ intersectionToList,intersectionAsList,
+ intersectionMaybeToList,intersectionMaybeAsList,
 
  -- ** \'Venn diagram\' operations
  -- | Given two sets A and B represented as sorted AVL trees, the venn operations evaluate
@@ -44,17 +44,16 @@ module Data.Tree.AVL.Set
  -- rather than AVL tree if required.
  --
  -- Note that in all cases the three resulting sets are /disjoint/ and can safely be re-combined
- -- after most \"munging\" operations using 'genDisjointUnion'.
- genVenn,genVennMaybe,
+ -- after most \"munging\" operations using 'disjointUnion'.
+ venn,vennMaybe,
 
  -- *** \'Venn diagram\' operations with the intersection component as a List.
  -- | These variants are provided for the same reasons as the Intersection as List variants.
- genVennToList,genVennAsList,
- genVennMaybeToList,genVennMaybeAsList,
+ vennToList,vennAsList,
+ vennMaybeToList,vennMaybeAsList,
 
  -- ** Subset
- genIsSubsetOf,genIsSubsetOfBy
-
+ isSubsetOf,isSubsetOfBy,
 ) where
 
 import Prelude -- so haddock finds the symbols there
@@ -82,9 +81,8 @@ import GHC.Base
 -- an element of the first tree and the second comparison argument is an element of the second tree.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
--- (Faster than Hedge union from Data.Set at any rate).
-genUnion :: (e -> e -> COrdering e) -> AVL e -> AVL e -> AVL e
-genUnion c = gu where -- This is to avoid O(log n) height calculation for empty sets
+union :: (e -> e -> COrdering e) -> AVL e -> AVL e -> AVL e
+union c = gu where -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = t1
  gu t0                 E          = t0
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -98,12 +96,12 @@ genUnion c = gu where -- This is to avoid O(log n) height calculation for empty 
  gu t0@(P _  _ r0) t1@(P _  _ r1) = gu_ t0 (addHeight L(2) r0) t1 (addHeight L(2) r1)
  gu_ t0 h0 t1 h1 = case unionH c t0 h0 t1 h1 of UBT2(t,_) -> t
 
--- | Similar to 'genUnion', but the resulting tree does not include elements in cases where
+-- | Similar to 'union', but the resulting tree does not include elements in cases where
 -- the supplied combining comparison returns @(Eq Nothing)@.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genUnionMaybe :: (e -> e -> COrdering (Maybe e)) -> AVL e -> AVL e -> AVL e
-genUnionMaybe c = gu where -- This is to avoid O(log n) height calculation for empty sets
+unionMaybe :: (e -> e -> COrdering (Maybe e)) -> AVL e -> AVL e -> AVL e
+unionMaybe c = gu where -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = t1
  gu t0                 E          = t0
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -118,14 +116,14 @@ genUnionMaybe c = gu where -- This is to avoid O(log n) height calculation for e
  gu_ t0 h0 t1 h1 = case unionMaybeH c t0 h0 t1 h1 of UBT2(t,_) -> t
 
 -- | Uses the supplied comparison to evaluate the union of two /disjoint/ sets represented as
--- sorted AVL trees. It will be slightly faster than 'genUnion' but will raise an error if the
+-- sorted AVL trees. It will be slightly faster than 'union' but will raise an error if the
 -- two sets intersect. Typically this would be used to re-combine the \"post-munge\" results
 -- from one of the \"venn\" operations.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
 -- (Faster than Hedge union from Data.Set at any rate).
-genDisjointUnion :: (e -> e -> Ordering) -> AVL e -> AVL e -> AVL e
-genDisjointUnion c = gu where -- This is to avoid O(log n) height calculation for empty sets
+disjointUnion :: (e -> e -> Ordering) -> AVL e -> AVL e -> AVL e
+disjointUnion c = gu where -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = t1
  gu t0                 E          = t0
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -142,9 +140,9 @@ genDisjointUnion c = gu where -- This is to avoid O(log n) height calculation fo
 -- | Uses the supplied combining comparison to evaluate the union of all sets in a list
 -- of sets represented as sorted AVL trees. Behaves as if defined..
 --
--- @genUnions ccmp avls = foldl' ('genUnion' ccmp) empty avls@
-genUnions :: (e -> e -> COrdering e) -> [AVL e] -> AVL e
-genUnions c = gus E L(0) where
+-- @unions ccmp avls = foldl' ('union' ccmp) empty avls@
+unions :: (e -> e -> COrdering e) -> [AVL e] -> AVL e
+unions c = gus E L(0) where
  gus a _  []                 = a
  gus a ha (   E       :avls) = gus a ha avls
  gus a ha (t@(N l _ _):avls) = case unionH c a ha t (addHeight L(2) l) of UBT2(a_,ha_) -> gus a_ ha_ avls
@@ -155,24 +153,24 @@ genUnions c = gus E L(0) where
 -- sorted AVL trees.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIntersection :: (a -> b -> COrdering c) -> AVL a -> AVL b -> AVL c
-genIntersection c t0 t1 = case intersectionH c t0 t1 of UBT2(t,_) -> t
+intersection :: (a -> b -> COrdering c) -> AVL a -> AVL b -> AVL c
+intersection c t0 t1 = case intersectionH c t0 t1 of UBT2(t,_) -> t
 
--- | Similar to 'genIntersection', but the resulting tree does not include elements in cases where
+-- | Similar to 'intersection', but the resulting tree does not include elements in cases where
 -- the supplied combining comparison returns @(Eq Nothing)@.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIntersectionMaybe :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> AVL c
-genIntersectionMaybe c t0 t1 = case intersectionMaybeH c t0 t1 of UBT2(t,_) -> t
+intersectionMaybe :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> AVL c
+intersectionMaybe c t0 t1 = case intersectionMaybeH c t0 t1 of UBT2(t,_) -> t
 
--- | Similar to 'genIntersection', but prepends the result to the supplied list in
--- left to right order. This is a (++) free function which behaves as if defined:
+-- | Similar to 'intersection', but prepends the result to the supplied list in
+-- ascending order. This is a (++) free function which behaves as if defined:
 --
--- @genIntersectionToListL c setA setB cs = asListL (genIntersection c setA setB) ++ cs@
+-- @intersectionToList c setA setB cs = asListL (intersection c setA setB) ++ cs@
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIntersectionToListL :: (a -> b -> COrdering c) -> AVL a -> AVL b -> [c] -> [c]
-genIntersectionToListL comp = i where
+intersectionToList :: (a -> b -> COrdering c) -> AVL a -> AVL b -> [c] -> [c]
+intersectionToList comp = i where
  -- i :: AVL a -> AVL b -> [c] -> [c]
  i  E            _           cs = cs
  i  _            E           cs = cs
@@ -244,21 +242,21 @@ genIntersectionToListL comp = i where
                                  UBT5(l0,hl0,mbc1,l1,hl1) -> case spliceH l1 hl1 e r hr of
                                   UBT2(l1_,hl1_)          -> UBT5(l0,hl0,mbc1,l1_,hl1_)
 -----------------------------------------------------------------------
------------------- genIntersectionToListL Ends Here -------------------
+------------------ intersectionToList Ends Here -------------------
 -----------------------------------------------------------------------
 
--- | Applies 'genIntersectionToListL' to the empty list.
+-- | Applies 'intersectionToList' to the empty list.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIntersectionAsListL :: (a -> b -> COrdering c) -> AVL a -> AVL b -> [c]
-genIntersectionAsListL c setA setB = genIntersectionToListL c setA setB []
+intersectionAsList :: (a -> b -> COrdering c) -> AVL a -> AVL b -> [c]
+intersectionAsList c setA setB = intersectionToList c setA setB []
 
--- | Similar to 'genIntersectionToListL', but the result does not include elements in cases where
+-- | Similar to 'intersectionToList', but the result does not include elements in cases where
 -- the supplied combining comparison returns @(Eq Nothing)@.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIntersectionMaybeToListL :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> [c] -> [c]
-genIntersectionMaybeToListL comp = i where
+intersectionMaybeToList :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> [c] -> [c]
+intersectionMaybeToList comp = i where
  -- i :: AVL a -> AVL b -> [c] -> [c]
  i  E            _           cs = cs
  i  _            E           cs = cs
@@ -332,34 +330,34 @@ genIntersectionMaybeToListL comp = i where
                                    UBT5(l0,hl0,mbc1,l1,hl1) -> case spliceH l1 hl1 e r hr of
                                     UBT2(l1_,hl1_)          -> UBT5(l0,hl0,mbc1,l1_,hl1_)
 -----------------------------------------------------------------------
----------------- genIntersectionMaybeToListL Ends Here ----------------
+---------------- intersectionMaybeToList Ends Here ----------------
 -----------------------------------------------------------------------
 
--- | Applies 'genIntersectionMaybeToListL' to the empty list.
+-- | Applies 'intersectionMaybeToList' to the empty list.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIntersectionMaybeAsListL :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> [c]
-genIntersectionMaybeAsListL c setA setB = genIntersectionMaybeToListL c setA setB []
+intersectionMaybeAsList :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> [c]
+intersectionMaybeAsList c setA setB = intersectionMaybeToList c setA setB []
 
 -- | Uses the supplied comparison to evaluate the difference between two sets represented as
 -- sorted AVL trees. The expression..
 --
--- > genDifference cmp setA setB
+-- > difference cmp setA setB
 --
 -- .. is a set containing all those elements of @setA@ which do not appear in @setB@.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genDifference :: (a -> b -> Ordering) -> AVL a -> AVL b -> AVL a
+difference :: (a -> b -> Ordering) -> AVL a -> AVL b -> AVL a
 -- N.B. differenceH works with relative heights on first tree, and needs no height for the second.
-genDifference c t0 t1 = case differenceH c t0 L(0) t1 of UBT2(t,_) -> t
+difference c t0 t1 = case differenceH c t0 L(0) t1 of UBT2(t,_) -> t
 
--- | Similar to 'genDifference', but the resulting tree also includes those elements a\' for which the
+-- | Similar to 'difference', but the resulting tree also includes those elements a\' for which the
 -- combining comparison returns @(Eq (Just a\'))@.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genDifferenceMaybe :: (a -> b -> COrdering (Maybe a)) -> AVL a -> AVL b -> AVL a
+differenceMaybe :: (a -> b -> COrdering (Maybe a)) -> AVL a -> AVL b -> AVL a
 -- N.B. differenceMaybeH works with relative heights on first tree, and needs no height for the second.
-genDifferenceMaybe c t0 t1 = case differenceMaybeH c t0 L(0) t1 of UBT2(t,_) -> t
+differenceMaybe c t0 t1 = case differenceMaybeH c t0 L(0) t1 of UBT2(t,_) -> t
 
 -- | Uses the supplied comparison to test whether the first set is a subset of the second,
 -- both sets being represented as sorted AVL trees.  This function returns True if any of
@@ -372,8 +370,8 @@ genDifferenceMaybe c t0 t1 = case differenceMaybeH c t0 L(0) t1 of UBT2(t,_) -> 
 -- * The first set is a proper subset of the second set.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIsSubsetOf :: (a -> b -> Ordering) -> AVL a -> AVL b -> Bool
-genIsSubsetOf comp = s where
+isSubsetOf :: (a -> b -> Ordering) -> AVL a -> AVL b -> Bool
+isSubsetOf comp = s where
  -- s :: AVL a -> AVL b -> Bool
  s  E            _           = True
  s  _            E           = False
@@ -433,15 +431,15 @@ genIsSubsetOf comp = s where
                               UBT4(t0,ht0,t1,ht1) -> case spliceH t1 ht1 e r hr of
                                UBT2(t1_,ht1_)     -> UBT4(t0,ht0,t1_,ht1_)
 -----------------------------------------------------------------------
------------------------- genIsSubsetOf Ends Here ----------------------
+------------------------ isSubsetOf Ends Here ----------------------
 -----------------------------------------------------------------------
 
--- | Similar to 'genIsSubsetOf', but also requires that the supplied combining
+-- | Similar to 'isSubsetOf', but also requires that the supplied combining
 -- comparison returns @('Eq' True)@ for matching elements.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genIsSubsetOfBy :: (a -> b -> COrdering Bool) -> AVL a -> AVL b -> Bool
-genIsSubsetOfBy comp = s where
+isSubsetOfBy :: (a -> b -> COrdering Bool) -> AVL a -> AVL b -> Bool
+isSubsetOfBy comp = s where
  -- s :: AVL a -> AVL b -> Bool
  s  E            _           = True
  s  _            E           = False
@@ -506,14 +504,14 @@ genIsSubsetOfBy comp = s where
                                 UBT5(True ,t0,ht0,t1,ht1) -> case spliceH t1 ht1 e r hr of
                                                              UBT2(t1_,ht1_) -> UBT5(True,t0,ht0,t1_,ht1_)
 -----------------------------------------------------------------------
------------------------ genIsSubsetOfBy Ends Here ---------------------
+----------------------- isSubsetOfBy Ends Here ---------------------
 -----------------------------------------------------------------------
 
 -- | The symmetric difference is the set of elements which occur in one set or the other but /not both/.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genSymDifference :: (e -> e -> Ordering) -> AVL e -> AVL e -> AVL e
-genSymDifference c = gu where -- This is to avoid O(log n) height calculation for empty sets
+symDifference :: (e -> e -> Ordering) -> AVL e -> AVL e -> AVL e
+symDifference c = gu where -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = t1
  gu t0                 E          = t0
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -529,11 +527,11 @@ genSymDifference c = gu where -- This is to avoid O(log n) height calculation fo
 
 -- | Given two Sets @A@ and @B@ represented as sorted AVL trees, this function
 -- extracts the \'Venn diagram\' components @A-B@, @A.B@ and @B-A@.
--- See also 'genVennMaybe'.
+-- See also 'vennMaybe'.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genVenn :: (a -> b -> COrdering c) -> AVL a -> AVL b -> (AVL a, AVL c, AVL b)
-genVenn c = gu where  -- This is to avoid O(log n) height calculation for empty sets
+venn :: (a -> b -> COrdering c) -> AVL a -> AVL b -> (AVL a, AVL c, AVL b)
+venn c = gu where  -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = (E ,E,t1)
  gu t0                 E          = (t0,E,E )
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -549,12 +547,12 @@ genVenn c = gu where  -- This is to avoid O(log n) height calculation for empty 
                    UBT6(tab,_,cs,cl,tba,_) -> let tc = asTreeLenL ASINT(cl) cs
                                               in tc `seq` (tab,tc,tba)
 
--- | Similar to 'genVenn', but intersection elements for which the combining comparison
+-- | Similar to 'venn', but intersection elements for which the combining comparison
 -- returns @('Eq' 'Nothing')@ are deleted from the intersection result.
 --
 -- Complexity: Not sure, but I\'d appreciate it if someone could figure it out.
-genVennMaybe :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> (AVL a, AVL c, AVL b)
-genVennMaybe c = gu where -- This is to avoid O(log n) height calculation for empty sets
+vennMaybe :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> (AVL a, AVL c, AVL b)
+vennMaybe c = gu where -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = (E ,E,t1)
  gu t0                 E          = (t0,E,E )
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -570,10 +568,10 @@ genVennMaybe c = gu where -- This is to avoid O(log n) height calculation for em
                    UBT6(tab,_,cs,cl,tba,_) -> let tc = asTreeLenL ASINT(cl) cs
                                               in tc `seq` (tab,tc,tba)
 
--- | Same as 'genVenn', but prepends the intersection component to the supplied list
+-- | Same as 'venn', but prepends the intersection component to the supplied list
 -- in ascending order.
-genVennToList :: (a -> b -> COrdering c) -> [c] -> AVL a -> AVL b -> (AVL a, [c], AVL b)
-genVennToList cmp cs = gu where  -- This is to avoid O(log n) height calculation for empty sets
+vennToList :: (a -> b -> COrdering c) -> [c] -> AVL a -> AVL b -> (AVL a, [c], AVL b)
+vennToList cmp cs = gu where  -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = (E ,cs,t1)
  gu t0                 E          = (t0,cs,E )
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -588,10 +586,10 @@ genVennToList cmp cs = gu where  -- This is to avoid O(log n) height calculation
  gu_ t0 h0 t1 h1 = case vennH cmp cs L(0) t0 h0 t1 h1 of
                    UBT6(tab,_,cs_,_,tba,_) -> (tab,cs_,tba)
 
--- | Same as 'genVennMaybe', but prepends the intersection component to the supplied list
+-- | Same as 'vennMaybe', but prepends the intersection component to the supplied list
 -- in ascending order.
-genVennMaybeToList  :: (a -> b -> COrdering (Maybe c)) -> [c] -> AVL a -> AVL b -> (AVL a, [c], AVL b)
-genVennMaybeToList cmp cs = gu where  -- This is to avoid O(log n) height calculation for empty sets
+vennMaybeToList  :: (a -> b -> COrdering (Maybe c)) -> [c] -> AVL a -> AVL b -> (AVL a, [c], AVL b)
+vennMaybeToList cmp cs = gu where  -- This is to avoid O(log n) height calculation for empty sets
  gu     E          t1             = (E ,cs,t1)
  gu t0                 E          = (t0,cs,E )
  gu t0@(N l0 _ _ ) t1@(N l1 _ _ ) = gu_ t0 (addHeight L(2) l0) t1 (addHeight L(2) l1)
@@ -606,15 +604,15 @@ genVennMaybeToList cmp cs = gu where  -- This is to avoid O(log n) height calcul
  gu_ t0 h0 t1 h1 = case vennMaybeH cmp cs L(0) t0 h0 t1 h1 of
                    UBT6(tab,_,cs_,_,tba,_) -> (tab,cs_,tba)
 
--- | Same as 'genVenn', but returns the intersection component as a list in ascending order.
--- This is just 'genVennToList' applied to an empty initial intersection list.
-genVennAsList :: (a -> b -> COrdering c) -> AVL a -> AVL b -> (AVL a, [c], AVL b)
-{-# INLINE genVennAsList #-}
-genVennAsList cmp = genVennToList cmp []
+-- | Same as 'venn', but returns the intersection component as a list in ascending order.
+-- This is just 'vennToList' applied to an empty initial intersection list.
+vennAsList :: (a -> b -> COrdering c) -> AVL a -> AVL b -> (AVL a, [c], AVL b)
+vennAsList cmp = vennToList cmp []
+{-# INLINE vennAsList #-}
 
--- | Same as 'genVennMaybe', but returns the intersection component as a list in ascending order.
--- This is just 'genVennMaybeToList' applied to an empty initial intersection list.
-genVennMaybeAsList  :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> (AVL a, [c], AVL b)
-{-# INLINE genVennMaybeAsList #-}
-genVennMaybeAsList cmp = genVennMaybeToList cmp []
+-- | Same as 'vennMaybe', but returns the intersection component as a list in ascending order.
+-- This is just 'vennMaybeToList' applied to an empty initial intersection list.
+vennMaybeAsList  :: (a -> b -> COrdering (Maybe c)) -> AVL a -> AVL b -> (AVL a, [c], AVL b)
+vennMaybeAsList cmp = vennMaybeToList cmp []
+{-# INLINE vennMaybeAsList #-}
 

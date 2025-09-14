@@ -25,7 +25,7 @@ module Data.Tree.AVL.Test.Utils
         ) where
 
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.List(mapAVL',asTreeLenL,asListL)
+import Data.Tree.AVL.List(map',asTreeLenL,asListL)
 
 #ifdef __GLASGOW_HASKELL__
 import GHC.Base
@@ -142,7 +142,7 @@ allAVL = p0 : p1 : moreTrees p1 p0 where
     let rootEl   = sizel            -- Value of new root element
         addRight = sizel+1          -- Offset to add to elements of right sub-tree
         newSize  = addRight + sizer -- Size of the new tree
-        r'       = mapAVL' (addRight+) r
+        r'       = map' (addRight+) r
         t        = r' `seq` con l rootEl r'
     in newSize `seq` t `seq` (t, newSize)
   -- interleave two lists (until one or other is [])

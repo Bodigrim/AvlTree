@@ -21,43 +21,43 @@ module Data.Tree.AVL.Test.AllTests
 ,testIsSorted
 ,testSize
 ,testClipSize
-,testGenWrite
-,testGenPush
+,testWrite
+,testPush
 ,testPushL
 ,testPushR
-,testGenDel
+,testDelete
 ,testAssertDelL
 ,testAssertDelR
 ,testAssertPopL
 ,testPopHL
 ,testAssertPopR
-,testGenAssertPop
+,testAssertPop
 ,testFlatten
 ,testJoin
 ,testJoinHAVL
 ,testConcatAVL
 ,testFlatConcat
-,testFoldrAVL
-,testFoldrAVL'
-,testFoldlAVL
-,testFoldlAVL'
-,testFoldr1AVL
-,testFoldr1AVL'
-,testFoldl1AVL
-,testFoldl1AVL'
-,testMapAccumLAVL
-,testMapAccumRAVL
-,testMapAccumLAVL'
-,testMapAccumRAVL'
+,testFoldr
+,testFoldr'
+,testFoldl
+,testFoldl'
+,testFoldr1
+,testFoldr1'
+,testFoldl1
+,testFoldl1'
+,testMapAccumL
+,testMapAccumR
+,testMapAccumL'
+,testMapAccumR'
 #ifdef __GLASGOW_HASKELL__
-,testMapAccumLAVL''
-,testMapAccumRAVL''
+,testMapAccumL''
+,testMapAccumR''
 #endif
 ,testSplitAtL
 ,testFilterViaList
-,testFilterAVL
+,testFilter
 ,testMapMaybeViaList
-,testMapMaybeAVL
+,testMapMaybe
 ,testTakeL
 ,testDropL
 ,testSplitAtR
@@ -73,31 +73,31 @@ module Data.Tree.AVL.Test.AllTests
 ,testRotateR
 ,testRotateByL
 ,testRotateByR
-,testGenForkL
-,testGenForkR
-,testGenFork
-,testGenTakeLE
-,testGenTakeGT
-,testGenTakeGE
-,testGenTakeLT
-,testGenUnion
-,testGenDisjointUnion
-,testGenUnionMaybe
-,testGenIntersection
-,testGenIntersectionMaybe
-,testGenIntersectionAsListL
-,testGenIntersectionMaybeAsListL
-,testGenDifference
-,testGenDifferenceMaybe
-,testGenSymDifference
-,testGenIsSubsetOf
-,testGenIsSubsetOfBy
-,testGenVenn
-,testGenVennMaybe
+,testForkL
+,testForkR
+,testFork
+,testTakeLE
+,testTakeGT
+,testTakeGE
+,testTakeLT
+,testUnion
+,testDisjointUnion
+,testUnionMaybe
+,testIntersection
+,testIntersectionMaybe
+,testIntersectionAsList
+,testIntersectionMaybeAsList
+,testDifference
+,testDifferenceMaybe
+,testSymDifference
+,testIsSubsetOf
+,testIsSubsetOfBy
+,testVenn
+,testVennMaybe
 ,testCompareHeight
 ,testShowReadEq
 -- Zipper tests
-,testGenOpenClose
+,testOpenClose
 ,testDelClose
 ,testOpenLClose
 ,testOpenRClose
@@ -118,20 +118,22 @@ module Data.Tree.AVL.Test.AllTests
 ,testDelAllCloseR
 ,testDelAllIncCloseR
 ,testZipSize
-,testGenTryOpenLE
-,testGenTryOpenGE
-,testGenOpenEither
+,testTryOpenLE
+,testTryOpenGE
+,testOpenEither
 ,testBAVLtoZipper
 ) where
+
+import Prelude hiding (reverse,map,replicate,filter,foldr,foldr1,foldl,foldl1) -- so haddock finds the symbols there
 
 import Data.COrdering
 import Data.Tree.AVLX
 
-import Data.List(insert,mapAccumL,mapAccumR)
+import qualified Data.List as L (replicate,reverse,filter,foldr1,foldl1,map,insert,mapAccumL,mapAccumR)
 import System.Exit(exitFailure)
 
 #ifdef __GLASGOW_HASKELL__
-import GHC.Base
+import GHC.Base(Int#,Int(..))
 #include "ghcdefs.h"
 #else
 #include "h98defs.h"
@@ -149,43 +151,43 @@ allTests =
     testIsSorted
     testSize
     testClipSize
-    testGenWrite
-    testGenPush
+    testWrite
+    testPush
     testPushL
     testPushR
-    testGenDel
+    testDelete
     testAssertDelL
     testAssertDelR
     testAssertPopL
     testPopHL
     testAssertPopR
-    testGenAssertPop
+    testAssertPop
     testFlatten
     testJoin
     testJoinHAVL
     testConcatAVL
     testFlatConcat
-    testFoldrAVL
-    testFoldrAVL'
-    testFoldlAVL
-    testFoldlAVL'
-    testFoldr1AVL
-    testFoldr1AVL'
-    testFoldl1AVL
-    testFoldl1AVL'
-    testMapAccumLAVL
-    testMapAccumRAVL
-    testMapAccumLAVL'
-    testMapAccumRAVL'
+    testFoldr
+    testFoldr'
+    testFoldl
+    testFoldl'
+    testFoldr1
+    testFoldr1'
+    testFoldl1
+    testFoldl1'
+    testMapAccumL
+    testMapAccumR
+    testMapAccumL'
+    testMapAccumR'
 #ifdef __GLASGOW_HASKELL__
-    testMapAccumLAVL''
-    testMapAccumRAVL''
+    testMapAccumL''
+    testMapAccumR''
 #endif
     testSplitAtL
     testFilterViaList
-    testFilterAVL
+    testFilter
     testMapMaybeViaList
-    testMapMaybeAVL
+    testMapMaybe
     testTakeL
     testDropL
     testSplitAtR
@@ -201,31 +203,31 @@ allTests =
     testRotateR
     testRotateByL
     testRotateByR
-    testGenForkL
-    testGenForkR
-    testGenFork
-    testGenTakeLE
-    testGenTakeGT
-    testGenTakeGE
-    testGenTakeLT
-    testGenUnion
-    testGenDisjointUnion
-    testGenUnionMaybe
-    testGenIntersection
-    testGenIntersectionMaybe
-    testGenIntersectionAsListL
-    testGenIntersectionMaybeAsListL
-    testGenDifference
-    testGenDifferenceMaybe
-    testGenSymDifference
-    testGenIsSubsetOf
-    testGenIsSubsetOfBy
-    testGenVenn
-    testGenVennMaybe
+    testForkL
+    testForkR
+    testFork
+    testTakeLE
+    testTakeGT
+    testTakeGE
+    testTakeLT
+    testUnion
+    testDisjointUnion
+    testUnionMaybe
+    testIntersection
+    testIntersectionMaybe
+    testIntersectionAsList
+    testIntersectionMaybeAsList
+    testDifference
+    testDifferenceMaybe
+    testSymDifference
+    testIsSubsetOf
+    testIsSubsetOfBy
+    testVenn
+    testVennMaybe
     testCompareHeight
     testShowReadEq
 -- Zipper tests
-    testGenOpenClose
+    testOpenClose
     testDelClose
     testOpenLClose
     testOpenRClose
@@ -246,9 +248,9 @@ allTests =
     testDelAllCloseR
     testDelAllIncCloseR
     testZipSize
-    testGenTryOpenLE
-    testGenTryOpenGE
-    testGenOpenEither
+    testTryOpenLE
+    testTryOpenGE
+    testOpenEither
     testBAVLtoZipper
 
 
@@ -285,63 +287,63 @@ testClipSize = do title "clipSize"
                where test _ s t = all (== Nothing) [clipSize n t | n <- [0..s-1 ]] &&
                                   all (== Just s ) [clipSize n t | n <- [s..s+10]]
 
--- | Test genWrite function
-testGenWrite :: IO ()
-testGenWrite = do title "genWrite"
-                  exhaustiveTest test (take 5 allNonEmptyAVL)
-               where test _ s t = all test_ [0..s-1]
-                      where test_ n = let t_ = genWrite (withCC' (+) n) t
-                                      in isBalanced t_ && (asListL t_ == [0..n-1]++(n+n):[n+1..s-1])
+-- | Test write function
+testWrite :: IO ()
+testWrite = do title "write"
+               exhaustiveTest test (take 5 allNonEmptyAVL)
+            where test _ s t = all test_ [0..s-1]
+                   where test_ n = let t_ = write (withCC' (+) n) t
+                                   in isBalanced t_ && (asListL t_ == [0..n-1]++(n+n):[n+1..s-1])
 
 
--- | Test genPush function
-testGenPush :: IO ()
--- Also exercises: mapAVL' and genContains
-testGenPush = do title "genPush"
-                 exhaustiveTest test (take 6 allAVL)
-              where test h s t = all oddTest odds && all evenTest evens
-                     where t_ = mapAVL' (\n -> 2*n+1) t        -- t_ elements are odd, 1,3..2*s-1
-                           odds  = [1,3..2*s-1]
-                           evens = [0,2..2*s  ]
-                           oddTest  n = let t__ = push n t_     -- Should yield identical trees
-                                            s__ = size   t__
-                                            h__ = ASINT(height t__)
-                                        in (s__ == s) && (isSortedOK compare t__) && (h__== h)
-                           evenTest n = let t__ = push n t_
-                                            s__ = size   t__
-                                            h__ = ASINT(height t__)
-                                        in (s__ == s+1) && (isSortedOK compare t__) && (h__-h <= 1) && (t__ `contains` n)
-                           push e = genPush (sndCC e) e
-                           contains avl e = genContains avl (compare e)
+-- | Test push function
+testPush :: IO ()
+-- Also exercises: map' and contains
+testPush = do title "push"
+              exhaustiveTest test (take 6 allAVL)
+           where test h s t = all oddTest odds && all evenTest evens
+                  where t_ = map' (\n -> 2*n+1) t        -- t_ elements are odd, 1,3..2*s-1
+                        odds  = [1,3..2*s-1]
+                        evens = [0,2..2*s  ]
+                        oddTest  n = let t__ = psh n t_     -- Should yield identical trees
+                                         s__ = size   t__
+                                         h__ = ASINT(height t__)
+                                     in (s__ == s) && (isSortedOK compare t__) && (h__== h)
+                        evenTest n = let t__ = psh n t_
+                                         s__ = size   t__
+                                         h__ = ASINT(height t__)
+                                     in (s__ == s+1) && (isSortedOK compare t__) && (h__-h <= 1) && (t__ `contns` n)
+                        psh e = push (sndCC e) e
+                        contns avl e = contains avl (compare e)
 
--- | Test genDel function
-testGenDel :: IO ()
-testGenDel = do title "genDel"
+-- | Test delete function
+testDelete :: IO ()
+testDelete = do title "delete"
                 exhaustiveTest test (take 5 allNonEmptyAVL)
              where test h s t = all oddTest odds && all evenTest evens
-                    where t_ = mapAVL' (\n -> 2*n+1) t        -- t_ elements are odd, 1,3..2*s-1
+                    where t_ = map' (\n -> 2*n+1) t        -- t_ elements are odd, 1,3..2*s-1
                           odds  = [1,3..2*s-1]
                           evens = [0,2..2*s  ]
                           oddTest  n = let t__ = del n t_
                                        in case checkHeight t__ of
-                                          Just h_ -> (h-h_<=1) && (insert n (asListL t__) == odds)
+                                          Just h_ -> (h-h_<=1) && (L.insert n (asListL t__) == odds)
                                           Nothing -> False
                           evenTest n = let t__ = del n t_
                                        in case checkHeight t__ of
                                           Just h_ -> (h==h_) && (asListL t__ == odds)
                                           Nothing -> False
-                          del e = genDel (compare e)
+                          del e = delete (compare e)
 
--- | Test genAssertPop function
-testGenAssertPop :: IO ()
-testGenAssertPop =
- do title "genAssertPop"
+-- | Test assertPop function
+testAssertPop :: IO ()
+testAssertPop =
+ do title "assertPop"
     exhaustiveTest test (take 5 allNonEmptyAVL)
  where test h s t = all testElem elems
         where elems = [0,1..s-1]
-              testElem n = let (n_,t_) = genAssertPop (fstCC n) t
+              testElem n = let (n_,t_) = assertPop (fstCC n) t
                            in case checkHeight t_ of
-                              Just h_ -> (h-h_<=1) && (insert n_ (asListL t_) == elems)
+                              Just h_ -> (h-h_<=1) && (L.insert n_ (asListL t_) == elems)
                               Nothing -> False
 
 -- | Test pushL function
@@ -428,100 +430,100 @@ testFlatten = do title "flatten"
               where test _ _ t = let t_ = flatten t
                                  in isBalanced t_ && (asListL t == asListL t_)
 
--- | Test foldrAVL
-testFoldrAVL :: IO ()
-testFoldrAVL = do title "foldrAVL"
-                  exhaustiveTest test (take 6 allAVL)
-               where test _ s t = foldrAVL (:) [] t == [0..s-1]
--- | Test foldrAVL'
-testFoldrAVL' :: IO ()
-testFoldrAVL' = do title "foldrAVL'"
+-- | Test foldr
+testFoldr :: IO ()
+testFoldr = do title "foldr"
+               exhaustiveTest test (take 6 allAVL)
+            where test _ s t = foldr (:) [] t == [0..s-1]
+-- | Test foldr'
+testFoldr' :: IO ()
+testFoldr' = do title "foldr'"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = foldr' (:) [] t == [0..s-1]
+-- | Test foldl
+testFoldl :: IO ()
+testFoldl = do title "foldl"
+               exhaustiveTest test (take 6 allAVL)
+            where test _ s t = foldl (flip (:)) [] t == [s-1,s-2..0]
+-- | Test foldl'
+testFoldl' :: IO ()
+testFoldl' = do title "foldl'"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = foldl' (flip (:)) [] t == [s-1,s-2..0]
+-- | Test foldr1
+testFoldr1 :: IO ()
+testFoldr1 = do title "foldr1"
+                exhaustiveTest test (take 5 allNonEmptyAVL)
+             where test _ s t = foldr1 (-) t == L.foldr1 (-) [0..s-1]
+-- | Test foldr1'
+testFoldr1' :: IO ()
+testFoldr1' = do title "foldr1'"
+                 exhaustiveTest test (take 5 allNonEmptyAVL)
+              where test _ s t = foldr1' (-) t == L.foldr1 (-) [0..s-1]
+-- | Test foldl1
+testFoldl1 :: IO ()
+testFoldl1 = do title "foldl1"
+                exhaustiveTest test (take 5 allNonEmptyAVL)
+             where test _ s t = foldl1 (-) t == L.foldl1 (-) [0..s-1]
+-- | Test foldl1'
+testFoldl1' :: IO ()
+testFoldl1' = do title "foldl1'"
+                 exhaustiveTest test (take 5 allNonEmptyAVL)
+              where test _ s t = foldl1' (-) t == L.foldl1 (-) [0..s-1]
+
+-- | Test mapAccumL
+testMapAccumL :: IO ()
+testMapAccumL = do title "mapAccumL"
                    exhaustiveTest test (take 6 allAVL)
-                where test _ s t = foldrAVL' (:) [] t == [0..s-1]
--- | Test foldlAVL
-testFoldlAVL :: IO ()
-testFoldlAVL = do title "foldlAVL"
-                  exhaustiveTest test (take 6 allAVL)
-               where test _ s t = foldlAVL (flip (:)) [] t == [s-1,s-2..0]
--- | Test foldlAVL'
-testFoldlAVL' :: IO ()
-testFoldlAVL' = do title "foldlAVL'"
+ where test _ _ t = let (nt,t') = mapAccumL f 0 t
+                        (nl,l ) = L.mapAccumL f 0 (asListL t)
+                    in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
+       f acc n = (acc+n,n+1)
+
+-- | Test mapAccumR
+testMapAccumR :: IO ()
+testMapAccumR = do title "mapAccumR"
                    exhaustiveTest test (take 6 allAVL)
-                where test _ s t = foldlAVL' (flip (:)) [] t == [s-1,s-2..0]
--- | Test foldr1AVL
-testFoldr1AVL :: IO ()
-testFoldr1AVL = do title "foldr1AVL"
-                   exhaustiveTest test (take 5 allNonEmptyAVL)
-                where test _ s t = foldr1AVL (-) t == foldr1 (-) [0..s-1]
--- | Test foldr1AVL'
-testFoldr1AVL' :: IO ()
-testFoldr1AVL' = do title "foldr1AVL'"
-                    exhaustiveTest test (take 5 allNonEmptyAVL)
-                 where test _ s t = foldr1AVL' (-) t == foldr1 (-) [0..s-1]
--- | Test foldl1AVL
-testFoldl1AVL :: IO ()
-testFoldl1AVL = do title "foldl1AVL"
-                   exhaustiveTest test (take 5 allNonEmptyAVL)
-                where test _ s t = foldl1AVL (-) t == foldl1 (-) [0..s-1]
--- | Test foldl1AVL'
-testFoldl1AVL' :: IO ()
-testFoldl1AVL' = do title "foldl1AVL'"
-                    exhaustiveTest test (take 5 allNonEmptyAVL)
-                 where test _ s t = foldl1AVL' (-) t == foldl1 (-) [0..s-1]
-
--- | Test mapAccumLAVL
-testMapAccumLAVL :: IO ()
-testMapAccumLAVL = do title "mapAccumLAVL"
-                      exhaustiveTest test (take 6 allAVL)
- where test _ _ t = let (nt,t') = mapAccumLAVL f 0 t
-                        (nl,l ) = mapAccumL f 0 (asListL t)
+ where test _ _ t = let (nt,t') = mapAccumR f 0 t
+                        (nl,l ) = L.mapAccumR f 0 (asListL t)
                     in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
        f acc n = (acc+n,n+1)
 
--- | Test mapAccumRAVL
-testMapAccumRAVL :: IO ()
-testMapAccumRAVL = do title "mapAccumRAVL"
-                      exhaustiveTest test (take 6 allAVL)
- where test _ _ t = let (nt,t') = mapAccumRAVL f 0 t
-                        (nl,l ) = mapAccumR f 0 (asListL t)
+-- | Test mapAccumL'
+testMapAccumL' :: IO ()
+testMapAccumL' = do title "mapAccumL'"
+                    exhaustiveTest test (take 6 allAVL)
+ where test _ _ t = let (nt,t') = mapAccumL' f 0 t
+                        (nl,l ) = L.mapAccumL f 0 (asListL t)
                     in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
        f acc n = (acc+n,n+1)
 
--- | Test mapAccumLAVL'
-testMapAccumLAVL' :: IO ()
-testMapAccumLAVL' = do title "mapAccumLAVL'"
-                       exhaustiveTest test (take 6 allAVL)
- where test _ _ t = let (nt,t') = mapAccumLAVL' f 0 t
-                        (nl,l ) = mapAccumL f 0 (asListL t)
-                    in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
-       f acc n = (acc+n,n+1)
-
--- | Test mapAccumRAVL'
-testMapAccumRAVL' :: IO ()
-testMapAccumRAVL' = do title "mapAccumRAVL'"
-                       exhaustiveTest test (take 6 allAVL)
- where test _ _ t = let (nt,t') = mapAccumRAVL' f 0 t
-                        (nl,l ) = mapAccumR f 0 (asListL t)
+-- | Test mapAccumR'
+testMapAccumR' :: IO ()
+testMapAccumR' = do title "mapAccumR'"
+                    exhaustiveTest test (take 6 allAVL)
+ where test _ _ t = let (nt,t') = mapAccumR' f 0 t
+                        (nl,l ) = L.mapAccumR f 0 (asListL t)
                     in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
        f acc n = (acc+n,n+1)
 
 #ifdef __GLASGOW_HASKELL__
--- | Test mapAccumLAVL''
-testMapAccumLAVL'' :: IO ()
-testMapAccumLAVL'' = do title "mapAccumLAVL''"
-                        exhaustiveTest test (take 6 allAVL)
- where test _ _ t = let (nt,t') = mapAccumLAVL'' f_ 0 t
-                        (nl,l ) = mapAccumL f 0 (asListL t)
+-- | Test mapAccumL''
+testMapAccumL'' :: IO ()
+testMapAccumL'' = do title "mapAccumL''"
+                     exhaustiveTest test (take 6 allAVL)
+ where test _ _ t = let (nt,t') = mapAccumL'' f_ 0 t
+                        (nl,l ) = L.mapAccumL f 0 (asListL t)
                     in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
        f_ acc n = UBT2(acc+n,n+1)
        f  acc n =     (acc+n,n+1)
 
--- | Test mapAccumRAVL''
-testMapAccumRAVL'' :: IO ()
-testMapAccumRAVL'' = do title "mapAccumRAVL''"
-                        exhaustiveTest test (take 6 allAVL)
- where test _ _ t = let (nt,t') = mapAccumRAVL'' f_ 0 t
-                        (nl,l ) = mapAccumR f 0 (asListL t)
+-- | Test mapAccumR''
+testMapAccumR'' :: IO ()
+testMapAccumR'' = do title "mapAccumR''"
+                     exhaustiveTest test (take 6 allAVL)
+ where test _ _ t = let (nt,t') = mapAccumR'' f_ 0 t
+                        (nl,l ) = L.mapAccumR f 0 (asListL t)
                     in (nt==nl) && ((asListL t') == l) && (isSortedOK compare t')
        f_ acc n = UBT2(acc+n,n+1)
        f  acc n =     (acc+n,n+1)
@@ -533,7 +535,7 @@ testJoin = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                num   = 2000
            in do title "join"
                  putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                 if and [test l $ mapAVL (ls+) r | (l,ls) <- trees, (r,_) <- trees] then passed else failed
+                 if and [test l $ map (ls+) r | (l,ls) <- trees, (r,_) <- trees] then passed else failed
               where test l r = let j = l `join` r
                                in  isBalanced j && (asListL j == l `toListL` asListL r)
 
@@ -543,7 +545,7 @@ testJoinHAVL = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                    num   = 2000
                in do title "joinHAVL"
                      putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                     if and [test l $ mapAVL (ls+) r | (l,ls) <- trees, (r,_) <- trees] then passed else failed
+                     if and [test l $ map (ls+) r | (l,ls) <- trees, (r,_) <- trees] then passed else failed
                   where test l r = let (HAVL j hj) = (toHAVL l) `joinHAVL` (toHAVL r)
                                    in  case checkHeight j of
                                        Nothing  -> False
@@ -555,7 +557,7 @@ testConcatAVL = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                     num   = 2000
                 in do title "concatAVL"
                       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                      if others && and [test ls l $ mapAVL (\n -> n+(ls+1)) r
+                      if others && and [test ls l $ map (\n -> n+(ls+1)) r
                                        | (l,ls) <- trees, (r,_) <- trees]
                          then passed else failed
                 where test ls l r = let j = concatAVL $ [empty,empty,l,empty,singleton ls,empty,r,empty,empty]
@@ -567,7 +569,7 @@ testConcatAVL = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                                     ,["","A","BC","","D","","EFGH","I"]
                                     ]
                                   )
-                      test1 ss = let t = concatAVL $ map asTreeL ss
+                      test1 ss = let t = concatAVL $ L.map asTreeL ss
                                  in isBalanced t && (asListL t == concat ss)
 
 -- | Test the flatConcat function.
@@ -576,7 +578,7 @@ testFlatConcat = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                      num   = 2000
                  in do title "flatConcat"
                        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                       if others && and [test ls l $ mapAVL (\n -> n+(ls+1)) r
+                       if others && and [test ls l $ map (\n -> n+(ls+1)) r
                                         | (l,ls) <- trees, (r,_) <- trees]
                           then passed else failed
                  where test ls l r = let j = flatConcat $ [empty,empty,l,empty,singleton ls,empty,r,empty,empty]
@@ -588,7 +590,7 @@ testFlatConcat = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
                                      ,["","A","BC","","D","","EFGH","I"]
                                      ]
                                    )
-                       test1 ss = let t = flatConcat $ map asTreeL ss
+                       test1 ss = let t = flatConcat $ L.map asTreeL ss
                                   in isBalanced t && (asListL t == concat ss)
 
 -- | Test the filterViaList function
@@ -599,13 +601,13 @@ testFilterViaList = do title "filterViaList"
                            where testit n = let t' = filterViaList (/= n) t
                                             in (isSortedOK compare t') && (asListL t' == ([0..n-1]++[n+1..s-1]))
 
--- | Test the filterAVL function
-testFilterAVL :: IO ()
-testFilterAVL = do title "filterAVL"
-                   exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all testit [0..s] -- n==s should yield unmodified tree
-                       where testit n = let t' = filterAVL (/= n) t
-                                        in (isSortedOK compare t') && (asListL t' == ([0..n-1]++[n+1..s-1]))
+-- | Test the filter function
+testFilter :: IO ()
+testFilter = do title "filter"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = all testit [0..s] -- n==s should yield unmodified tree
+                    where testit n = let t' = filter (/= n) t
+                                     in (isSortedOK compare t') && (asListL t' == ([0..n-1]++[n+1..s-1]))
 
 -- | Test the mapMaybeViaList function
 testMapMaybeViaList :: IO ()
@@ -615,13 +617,13 @@ testMapMaybeViaList = do title "mapMaybeViaList"
                              where testit n = let t' = mapMaybeViaList (\m -> if m==n then Nothing else Just m) t
                                               in (isSortedOK compare t') && (asListL t' == ([0..n-1]++[n+1..s-1]))
 
--- | Test the mapMaybeAVL function
-testMapMaybeAVL :: IO ()
-testMapMaybeAVL = do title "mapMaybeAVL"
-                     exhaustiveTest test (take 6 allAVL)
-                  where test _ s t = all testit [0..s] -- n==s should yield unmodified tree
-                         where testit n = let t' = mapMaybeAVL (\m -> if m==n then Nothing else Just m) t
-                                          in (isSortedOK compare t') && (asListL t' == ([0..n-1]++[n+1..s-1]))
+-- | Test the mapMaybe function
+testMapMaybe :: IO ()
+testMapMaybe = do title "mapMaybe"
+                  exhaustiveTest test (take 6 allAVL)
+               where test _ s t = all testit [0..s] -- n==s should yield unmodified tree
+                      where testit n = let t' = mapMaybe (\m -> if m==n then Nothing else Just m) t
+                                       in (isSortedOK compare t') && (asListL t' == ([0..n-1]++[n+1..s-1]))
 
 -- | Test splitAtL function
 testSplitAtL :: IO ()
@@ -768,7 +770,7 @@ testRotateL :: IO ()
 testRotateL = do title "rotateL"
                  exhaustiveTest test (take 6 allAVL)
               where test _ s t = all isOK rotations
-                     where rotations = take s $ tail $ iterate (mapAVL' (\n -> (n-1) `mod` s) . rotateL) t
+                     where rotations = take s $ tail $ iterate (map' (\n -> (n-1) `mod` s) . rotateL) t
                            isOK t_ = (isBalanced t_) && (asListL t_ == tlist)
                            tlist   = asListL t
 -- | Test rotateR function
@@ -776,7 +778,7 @@ testRotateR :: IO ()
 testRotateR = do title "rotateR"
                  exhaustiveTest test (take 6 allAVL)
               where test _ s t = all isOK rotations
-                     where rotations = take s $ tail $ iterate (mapAVL' (\n -> (n+1) `mod` s) . rotateR) t
+                     where rotations = take s $ tail $ iterate (map' (\n -> (n+1) `mod` s) . rotateR) t
                            isOK t_ = (isBalanced t_) && (asListL t_ == tlist)
                            tlist   = asListL t
 
@@ -784,8 +786,8 @@ testRotateR = do title "rotateR"
 testRotateByL :: IO ()
 testRotateByL = do title "rotateByL"
                    exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all isOK $ map rotateIt [-1..s]
-                       where rotateIt n = mapAVL' (\n_ -> (n_-n) `mod` s) $ rotateByL t n
+                where test _ s t = all isOK $ L.map rotateIt [-1..s]
+                       where rotateIt n = map' (\n_ -> (n_-n) `mod` s) $ rotateByL t n
                              isOK t_ = (isBalanced t_) && (asListL t_ == tlist)
                              tlist   = asListL t
 
@@ -793,287 +795,287 @@ testRotateByL = do title "rotateByL"
 testRotateByR :: IO ()
 testRotateByR = do title "rotateByR"
                    exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all isOK $ map rotateIt [-1..s]
-                       where rotateIt n = mapAVL' (\n_ -> (n_+n) `mod` s) $ rotateByR t n
+                where test _ s t = all isOK $ L.map rotateIt [-1..s]
+                       where rotateIt n = map' (\n_ -> (n_+n) `mod` s) $ rotateByR t n
                              isOK t_ = (isBalanced t_) && (asListL t_ == tlist)
                              tlist   = asListL t
 
--- | Test genForkL function
-testGenForkL :: IO ()
-testGenForkL = do title "genForkL"
-                  exhaustiveTest test (take 6 allAVL)
-               where test _ s t = all testForkL [-1..s-1]
-                      where tlist = asListL t
-                            testForkL n = let (l,r) = genForkL (compare n) t
-                                          in (isBalanced l) && (isBalanced r) &&
-                                             (size l == n+1) && (size r == s-(n+1)) &&
-                                             (l `toListL` asListL r == tlist)
+-- | Test forkL function
+testForkL :: IO ()
+testForkL = do title "forkL"
+               exhaustiveTest test (take 6 allAVL)
+            where test _ s t = all testFarkL [-1..s-1]
+                   where tlist = asListL t
+                         testFarkL n = let (l,r) = forkL (compare n) t
+                                       in (isBalanced l) && (isBalanced r) &&
+                                          (size l == n+1) && (size r == s-(n+1)) &&
+                                          (l `toListL` asListL r == tlist)
 
--- | Test genForkR function
-testGenForkR :: IO ()
-testGenForkR = do title "genForkR"
-                  exhaustiveTest test (take 6 allAVL)
-               where test _ s t = all testForkR [0..s]
-                      where tlist = asListL t
-                            testForkR n = let (l,r) = genForkR (compare n) t
-                                          in (isBalanced l) && (isBalanced r) &&
-                                             (size l == n) && (size r == s-n) &&
-                                             (l `toListL` asListL r == tlist)
+-- | Test forkR function
+testForkR :: IO ()
+testForkR = do title "forkR"
+               exhaustiveTest test (take 6 allAVL)
+            where test _ s t = all testFarkR [0..s]
+                   where tlist = asListL t
+                         testFarkR n = let (l,r) = forkR (compare n) t
+                                       in (isBalanced l) && (isBalanced r) &&
+                                          (size l == n) && (size r == s-n) &&
+                                          (l `toListL` asListL r == tlist)
 
 
--- | Test genFork function
-testGenFork :: IO ()
-testGenFork = do title "genFork"
-                 exhaustiveTest test (take 6 allAVL)
-              where test _ s t = all testFork0 [0..s-1] && testFork1 (-1) && testFork2 s
-                      where tlist = asListL t
-                            testFork0 n = let (l,mbn,r) = genFork (fstCC n) t
-                                          in case mbn of
-                                             Just n_ -> (n_==n) && (isBalanced l) && (isBalanced r) &&
-                                                        (size l == n) && (size r == s-(n+1)) &&
-                                                        (l `toListL` (n : asListL r) == tlist)
-                                             _       -> False
-                            testFork1 n = let (l,mbn,r) = genFork (fstCC n) t
-                                          in case mbn of
-                                             Nothing -> (isEmpty l) && (isBalanced r) && (asListL r == tlist)
-                                             _       -> False
-                            testFork2 n = let (l,mbn,r) = genFork (fstCC n) t
-                                          in case mbn of
-                                             Nothing -> (isEmpty r) && (isBalanced l) && (asListL l == tlist)
-                                             _       -> False
+-- | Test fork function
+testFork :: IO ()
+testFork = do title "fork"
+              exhaustiveTest test (take 6 allAVL)
+           where test _ s t = all testFork0 [0..s-1] && testFork1 (-1) && testFork2 s
+                   where tlist = asListL t
+                         testFork0 n = let (l,mbn,r) = fork (fstCC n) t
+                                       in case mbn of
+                                          Just n_ -> (n_==n) && (isBalanced l) && (isBalanced r) &&
+                                                     (size l == n) && (size r == s-(n+1)) &&
+                                                     (l `toListL` (n : asListL r) == tlist)
+                                          _       -> False
+                         testFork1 n = let (l,mbn,r) = fork (fstCC n) t
+                                       in case mbn of
+                                          Nothing -> (isEmpty l) && (isBalanced r) && (asListL r == tlist)
+                                          _       -> False
+                         testFork2 n = let (l,mbn,r) = fork (fstCC n) t
+                                       in case mbn of
+                                          Nothing -> (isEmpty r) && (isBalanced l) && (asListL l == tlist)
+                                          _       -> False
 
--- | Test genTakeLE function
-testGenTakeLE :: IO ()
-testGenTakeLE = do title "genTakeLE"
-                   exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all testTakeLE [-1..s-1]
-                       where testTakeLE n = let l = genTakeLE (compare n) t
-                                            in (isBalanced l) && (asListL l == [0..n])
+-- | Test takeLE function
+testTakeLE :: IO ()
+testTakeLE = do title "takeLE"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = all testTikeLE [-1..s-1]
+                    where testTikeLE n = let l = takeLE (compare n) t
+                                         in (isBalanced l) && (asListL l == [0..n])
 
--- | Test genTakeLT function
-testGenTakeLT :: IO ()
-testGenTakeLT = do title "genTakeLT"
-                   exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all testTakeLT [0..s]
-                       where testTakeLT n = let l = genTakeLT (compare n) t
-                                            in (isBalanced l) && (asListL l == [0..n-1])
+-- | Test takeLT function
+testTakeLT :: IO ()
+testTakeLT = do title "takeLT"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = all testTikeLT [0..s]
+                    where testTikeLT n = let l = takeLT (compare n) t
+                                         in (isBalanced l) && (asListL l == [0..n-1])
 
--- | Test genTakeGT function
-testGenTakeGT :: IO ()
-testGenTakeGT = do title "genTakeGT"
-                   exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all testTakeGT [-1..s-1]
-                       where testTakeGT n = let r = genTakeGT (compare n) t
-                                            in (isBalanced r) && (asListL r == [n+1..s-1])
+-- | Test takeGT function
+testTakeGT :: IO ()
+testTakeGT = do title "takeGT"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = all testTikeGT [-1..s-1]
+                    where testTikeGT n = let r = takeGT (compare n) t
+                                         in (isBalanced r) && (asListL r == [n+1..s-1])
 
--- | Test genTakeGE function
-testGenTakeGE :: IO ()
-testGenTakeGE = do title "genTakeGE"
-                   exhaustiveTest test (take 6 allAVL)
-                where test _ s t = all testTakeGE [0..s]
-                       where testTakeGE n = let r = genTakeGE (compare n) t
-                                            in (isBalanced r) && (asListL r == [n..s-1])
+-- | Test takeGE function
+testTakeGE :: IO ()
+testTakeGE = do title "takeGE"
+                exhaustiveTest test (take 6 allAVL)
+             where test _ s t = all testTikeGE [0..s]
+                    where testTikeGE n = let r = takeGE (compare n) t
+                                         in (isBalanced r) && (asListL r == [n..s-1])
 
--- | Test the genUnion function
-testGenUnion :: IO ()
-testGenUnion = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                   num   = 1000
-               in do title "genUnion"
-                     putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                     if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                  where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-                        test1 l ls r rs = let u = unionFst l r
-                                          in isBalanced u && (asListL u == [0 .. max ls rs - 1])
-                        test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                         where test2_ n r_ = let u = unionFst l r_
-                                             in isBalanced u && (asListL u == [min n 0 .. max ls (rs+n) - 1])
-                        test3 l ls r rs = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                              r_ = mapAVL' (\n -> n+n+1) r -- odd
-                                              u  = unionFst l_ r_
-                                          in isSortedOK compare u && (size u == ls+rs)
-                        unionFst = genUnion fstCC
+-- | Test the union function
+testUnion :: IO ()
+testUnion = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                num   = 1000
+            in do title "union"
+                  putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                  if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+               where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
+                     test1 l ls r rs = let u = unionFst l r
+                                       in isBalanced u && (asListL u == [0 .. max ls rs - 1])
+                     test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                      where test2_ n r_ = let u = unionFst l r_
+                                          in isBalanced u && (asListL u == [min n 0 .. max ls (rs+n) - 1])
+                     test3 l ls r rs = let l_ = map' (\n -> n+n  ) l -- even
+                                           r_ = map' (\n -> n+n+1) r -- odd
+                                           u  = unionFst l_ r_
+                                       in isSortedOK compare u && (size u == ls+rs)
+                     unionFst = union fstCC
 
--- | Test the genDisjointUnion function
-testGenDisjointUnion :: IO ()
-testGenDisjointUnion =
+-- | Test the disjointUnion function
+testDisjointUnion :: IO ()
+testDisjointUnion =
  let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
      num   = 1000
- in do title "genDisjointUnion"
+ in do title "disjointUnion"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-       if and [test (mapAVL' (\n -> 2*n) l) ls (mapAVL' (\n -> 2*n+1) r) rs
+       if and [test (map' (\n -> 2*n) l) ls (map' (\n -> 2*n+1) r) rs
               | (l,ls) <- trees -- 0,2..2*ls-2
               , (r,rs) <- trees -- 1,3..2*rs-1
               ]
         then passed
         else failed
     where test  l ls r rs = all (\f -> f l ls r rs) [test1]
-          test1 l ls r rs = and  [test1_ $ mapAVL' (+(2*n)) r | n <- [(-rs)..(ls-1)]]
-           where test1_ r_ = let u = genDisjointUnion compare l r_
+          test1 l ls r rs = and  [test1_ $ map' (+(2*n)) r | n <- [(-rs)..(ls-1)]]
+           where test1_ r_ = let u = disjointUnion compare l r_
                              in isBalanced u && (asListL u == listUnion (asListL l) (asListL r_))
 
--- | Test the genSymDifference function
-testGenSymDifference :: IO ()
-testGenSymDifference =
+-- | Test the symDifference function
+testSymDifference :: IO ()
+testSymDifference =
  let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
      num   = 1000
- in do title "genSymDifference"
+ in do title "symDifference"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
        if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
     where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
           test1 l ls r rs = let u = symDiff l r
                             in isBalanced u && (asListL u == [min ls rs .. max ls rs - 1])
-          test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
+          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
            where test2_ n r_ = let u = symDiff l r_
                                in isBalanced u && (asListL u == [min n  0      .. max n  0      - 1] ++
                                                                 [min ls (rs+n) .. max ls (rs+n) - 1])
-          test3 l ls r rs = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                r_ = mapAVL' (\n -> n+n+1) r -- odd
+          test3 l ls r rs = let l_ = map' (\n -> n+n  ) l -- even
+                                r_ = map' (\n -> n+n+1) r -- odd
                                 u  = symDiff l_ r_
                             in isSortedOK compare u && (size u == ls+rs)
-          symDiff = genSymDifference compare
+          symDiff = symDifference compare
 
--- | Test the genUnionMaybe function
-testGenUnionMaybe :: IO ()
-testGenUnionMaybe = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                        num   = 1000
-                    in do title "genUnionMaybe"
-                          putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                          if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                       where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-                             test1 l ls r rs = let u = onion l r
-                                                   mn = min ls rs
-                                                   mx = max ls rs
-                                               in isBalanced u && (asListL u == [0,2 .. mn - 1] ++ [mn .. mx-1])
-                             test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                              where test2_ n r_ = let u = onion l r_
-                                                      n0 = min n 0
-                                                      n1 = max n 0
-                                                      n2 = min ls (rs+n)
-                                                      n3 = max ls (rs+n)
-                                                  in isBalanced u && (asListL u == [n0 .. n1-1]
-                                                                                ++ filter even [n1 .. n2-1]
-                                                                                ++ [n2..n3-1]
-                                                                     )
-                             test3 l ls r rs = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                                   r_ = mapAVL' (\n -> n+n+1) r -- odd
-                                                   u  = onion l_ r_
-                                               in isSortedOK compare u && (size u == ls+rs)
-                             onion = genUnionMaybe (withCC' com)
-                             com a _ = if even a then Just a else Nothing
+-- | Test the unionMaybe function
+testUnionMaybe :: IO ()
+testUnionMaybe = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                     num   = 1000
+                 in do title "unionMaybe"
+                       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                       if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+                    where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
+                          test1 l ls r rs = let u = onion l r
+                                                mn = min ls rs
+                                                mx = max ls rs
+                                            in isBalanced u && (asListL u == [0,2 .. mn - 1] ++ [mn .. mx-1])
+                          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                           where test2_ n r_ = let u = onion l r_
+                                                   n0 = min n 0
+                                                   n1 = max n 0
+                                                   n2 = min ls (rs+n)
+                                                   n3 = max ls (rs+n)
+                                               in isBalanced u && (asListL u == [n0 .. n1-1]
+                                                                             ++ L.filter even [n1 .. n2-1]
+                                                                             ++ [n2..n3-1]
+                                                                  )
+                          test3 l ls r rs = let l_ = map' (\n -> n+n  ) l -- even
+                                                r_ = map' (\n -> n+n+1) r -- odd
+                                                u  = onion l_ r_
+                                            in isSortedOK compare u && (size u == ls+rs)
+                          onion = unionMaybe (withCC' com)
+                          com a _ = if even a then Just a else Nothing
 
--- | Test the genIntersection function
-testGenIntersection :: IO ()
-testGenIntersection = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                          num   = 1000
-                      in do title "genIntersection"
-                            putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                            if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                         where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-                               test1 l ls r rs = let u = genIntersection fstCC l r
-                                                 in isBalanced u && (asListL u == [0 .. min ls rs - 1])
-                               test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                                where test2_ n r_ = let u = genIntersection fstCC l r_
-                                                    in isBalanced u && (asListL u == [max n 0 .. min ls (rs+n) - 1])
-                               test3 l _  r _  = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                                     r_ = mapAVL' (\n -> n+n+1) r -- odd
-                                                     u  = genIntersection fstCC l_ r_
-                                                 in isEmpty u
+-- | Test the intersection function
+testIntersection :: IO ()
+testIntersection = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                       num   = 1000
+                   in do title "intersection"
+                         putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                         if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+                      where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
+                            test1 l ls r rs = let u = intersection fstCC l r
+                                              in isBalanced u && (asListL u == [0 .. min ls rs - 1])
+                            test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                             where test2_ n r_ = let u = intersection fstCC l r_
+                                                 in isBalanced u && (asListL u == [max n 0 .. min ls (rs+n) - 1])
+                            test3 l _  r _  = let l_ = map' (\n -> n+n  ) l -- even
+                                                  r_ = map' (\n -> n+n+1) r -- odd
+                                                  u  = intersection fstCC l_ r_
+                                              in isEmpty u
 
--- | Test the genIntersectionMaybe function
-testGenIntersectionMaybe :: IO ()
-testGenIntersectionMaybe = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                               num   = 1000
-                           in do title "genIntersectionMaybe"
-                                 putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                                 if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                              where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-                                    test1 l ls r rs = let u = insect l r
-                                                          mn = min ls rs
-                                                      in isBalanced u && (asListL u == [0,2 .. mn - 1])
-                                    test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                                     where test2_ n r_ = let u = insect l r_
-                                                             n1 = max n 0
-                                                             n2 = min ls (rs+n)
-                                                         in isBalanced u && (asListL u == filter even [n1 .. n2-1])
-                                    test3 l _  r _  = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                                          r_ = mapAVL' (\n -> n+n+1) r -- odd
-                                                          u  = insect l_ r_
-                                                      in isEmpty u
-                                    insect = genIntersectionMaybe (withCC' com)
-                                    com a _ = if even a then Just a else Nothing
+-- | Test the intersectionMaybe function
+testIntersectionMaybe :: IO ()
+testIntersectionMaybe = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                            num   = 1000
+                        in do title "intersectionMaybe"
+                              putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                              if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+                           where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
+                                 test1 l ls r rs = let u = insect l r
+                                                       mn = min ls rs
+                                                   in isBalanced u && (asListL u == [0,2 .. mn - 1])
+                                 test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                                  where test2_ n r_ = let u = insect l r_
+                                                          n1 = max n 0
+                                                          n2 = min ls (rs+n)
+                                                      in isBalanced u && (asListL u == L.filter even [n1 .. n2-1])
+                                 test3 l _  r _  = let l_ = map' (\n -> n+n  ) l -- even
+                                                       r_ = map' (\n -> n+n+1) r -- odd
+                                                       u  = insect l_ r_
+                                                   in isEmpty u
+                                 insect = intersectionMaybe (withCC' com)
+                                 com a _ = if even a then Just a else Nothing
 
--- | Test the genIntersectionAsListL function
-testGenIntersectionAsListL :: IO ()
-testGenIntersectionAsListL =
+-- | Test the intersectionAsList function
+testIntersectionAsList :: IO ()
+testIntersectionAsList =
  let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
      num   = 1000
- in do title "genIntersectionAsListL"
+ in do title "intersectionAsList"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
        if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
     where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-          test1 l ls r rs = let u = genIntersectionAsListL fstCC l r
+          test1 l ls r rs = let u = intersectionAsList fstCC l r
                             in u == [0 .. min ls rs - 1]
-          test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-           where test2_ n r_ = let u = genIntersectionAsListL fstCC l r_
+          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+           where test2_ n r_ = let u = intersectionAsList fstCC l r_
                                in u == [max n 0 .. min ls (rs+n) - 1]
-          test3 l _  r _  = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                r_ = mapAVL' (\n -> n+n+1) r -- odd
-                                u  = genIntersectionAsListL fstCC l_ r_
+          test3 l _  r _  = let l_ = map' (\n -> n+n  ) l -- even
+                                r_ = map' (\n -> n+n+1) r -- odd
+                                u  = intersectionAsList fstCC l_ r_
                             in null u
 
--- | Test the genIntersectionMaybeAsListL function
-testGenIntersectionMaybeAsListL :: IO ()
-testGenIntersectionMaybeAsListL =
+-- | Test the intersectionMaybeAsList function
+testIntersectionMaybeAsList :: IO ()
+testIntersectionMaybeAsList =
  let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
      num   = 1000
- in do title "genIntersectionMaybeAsListL"
+ in do title "intersectionMaybeAsList"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
        if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
     where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
           test1 l ls r rs = let u = insect l r
                                 mn = min ls rs
                             in u == [0,2 .. mn - 1]
-          test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
+          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
            where test2_ n r_ = let u = insect l r_
                                    n1 = max n 0
                                    n2 = min ls (rs+n)
-                               in u == filter even [n1 .. n2-1]
-          test3 l _  r _  = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                r_ = mapAVL' (\n -> n+n+1) r -- odd
+                               in u == L.filter even [n1 .. n2-1]
+          test3 l _  r _  = let l_ = map' (\n -> n+n  ) l -- even
+                                r_ = map' (\n -> n+n+1) r -- odd
                                 u  = insect l_ r_
                             in null u
-          insect = genIntersectionMaybeAsListL (withCC' com)
+          insect = intersectionMaybeAsList (withCC' com)
           com a _ = if even a then Just a else Nothing
 
--- | Test the genDifference function
-testGenDifference :: IO ()
-testGenDifference = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                        num   = 1000
-                    in do title "genDifference"
-                          putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                          if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                       where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-                             test1 l ls r rs = let u = difference l r
-                                               in isBalanced u && (asListL u == [rs .. ls - 1])
-                             test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                              where test2_ n r_ = let u = difference l r_
-                                                  in isBalanced u && (asListL u == [0 .. n-1] ++ [rs+n .. ls-1])
-                             test3 l ls r rs = let l_ = mapAVL' (\n -> n+n  ) l -- even
-                                                   r_ = mapAVL' (\n -> n+n+1) r -- odd
-                                                   u  = difference l r_
-                                                   u_ = difference l_ r_
-                                                   mn = min (ls-1) (2*rs-1)
-                                               in isBalanced u  &&
-                                                  (asListL u == filter even [0..mn] ++ [mn+1..ls-1]) &&
-                                                  isBalanced u_ && (asListL u_ == asListL l_)
-                             difference = genDifference compare
+-- | Test the difference function
+testDifference :: IO ()
+testDifference = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                     num   = 1000
+                 in do title "difference"
+                       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                       if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+                    where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
+                          test1 l ls r rs = let u = diff l r
+                                            in isBalanced u && (asListL u == [rs .. ls - 1])
+                          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                           where test2_ n r_ = let u = diff l r_
+                                               in isBalanced u && (asListL u == [0 .. n-1] ++ [rs+n .. ls-1])
+                          test3 l ls r rs = let l_ = map' (\n -> n+n  ) l -- even
+                                                r_ = map' (\n -> n+n+1) r -- odd
+                                                u  = diff l r_
+                                                u_ = diff l_ r_
+                                                mn = min (ls-1) (2*rs-1)
+                                            in isBalanced u  &&
+                                               (asListL u == L.filter even [0..mn] ++ [mn+1..ls-1]) &&
+                                               isBalanced u_ && (asListL u_ == asListL l_)
+                          diff = difference compare
 
--- | Test the genDifferenceMaybe function
-testGenDifferenceMaybe :: IO ()
-testGenDifferenceMaybe =
+-- | Test the differenceMaybe function
+testDifferenceMaybe :: IO ()
+testDifferenceMaybe =
  let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
      num   = 1000
- in do title "genDifferenceMaybe"
+ in do title "differenceMaybe"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
        if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
     where c m n = case compare m n of
@@ -1082,105 +1084,110 @@ testGenDifferenceMaybe =
                   GT -> Gt
           test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
           test1 l ls r rs = let mn = min (ls-1) (rs-1)
-                                u = genDifferenceMaybe c l r
-                            in isBalanced u && (asListL u == filter odd [0..mn] ++ [mn+1..ls-1])
-          test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-           where test2_ n r_ = let u = genDifferenceMaybe c l r_
+                                u = differenceMaybe c l r
+                            in isBalanced u && (asListL u == L.filter odd [0..mn] ++ [mn+1..ls-1])
+          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+           where test2_ n r_ = let u = differenceMaybe c l r_
                                    n0 = max 0 n
                                    n1 = min (ls-1) (rs+n-1)
                                in isBalanced u &&
-                                  (asListL u == [0..n0-1] ++ filter odd [n0..n1] ++ [n1+1..ls-1])
-          test3 l ls r rs = let l_ = mapAVL' (\n -> n+n+1) l -- odd
-                                r_ = mapAVL' (\n -> n+n  ) r -- even
-                                u  = genDifferenceMaybe c l r_
-                                u_ = genDifferenceMaybe c l_ r_
+                                  (asListL u == [0..n0-1] ++ L.filter odd [n0..n1] ++ [n1+1..ls-1])
+          test3 l ls r rs = let l_ = map' (\n -> n+n+1) l -- odd
+                                r_ = map' (\n -> n+n  ) r -- even
+                                u  = differenceMaybe c l r_
+                                u_ = differenceMaybe c l_ r_
                                 mn = min (ls-1) (2*rs-2)
                                 mx = max (mn+1) 0
-                                listfil = filter odd [0..mn]
+                                listfil = L.filter odd [0..mn]
                                 listrem = [mx..ls-1]
                             in isBalanced u && isBalanced u_ && (asListL u_ == asListL l_) &&
                                (asListL u == listfil ++ listrem)
 
--- | Test the genIsSubsetOf function
-testGenIsSubsetOf :: IO ()
-testGenIsSubsetOf = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                        num   = 1000
-                    in do title "genIsSubsetOf"
-                          putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                          if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                       where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2]
-                             test1 l ls r rs = (l `isSubsetOf` r == (ls<=rs)) &&
-                                               (r `isSubsetOf` l == (rs<=ls))
-                             test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                              where test2_ n r_ = (l  `isSubsetOf` r_ == ((n<=0) && (rs+n>=ls))) &&
-                                                  (r_ `isSubsetOf` l  == ((n>=0) && (rs+n<=ls)))
-                             isSubsetOf = genIsSubsetOf compare
+-- | Test the isSubsetOf function
+testIsSubsetOf :: IO ()
+testIsSubsetOf = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                     num   = 1000
+                 in do title "isSubsetOf"
+                       putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                       if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+                    where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2]
+                          test1 l ls r rs = (l `isSubset` r == (ls<=rs)) &&
+                                            (r `isSubset` l == (rs<=ls))
+                          test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                           where test2_ n r_ = (l  `isSubset` r_ == ((n<=0) && (rs+n>=ls))) &&
+                                               (r_ `isSubset` l  == ((n>=0) && (rs+n<=ls)))
+                          isSubset = isSubsetOf compare
 
--- | Test the genIsSubsetOfBy function
-testGenIsSubsetOfBy :: IO ()
-testGenIsSubsetOfBy = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
-                          num   = 1000
-                      in do title "genIsSubsetOfBy"
-                            putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
-                            if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
-                            -- test1 & test2 chack same behaviour as genIsSubsetOf
-                            -- test3 checks behviour for comarison functions that may return (Eq False)
-                         where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
-                               test1 l ls r rs = (l `isSubsetOf` r == (ls<=rs)) &&
-                                                 (r `isSubsetOf` l == (rs<=ls))
-                               test2 l ls r rs = and  [test2_ n $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-                                where test2_ n r_ = (l  `isSubsetOf` r_ == ((n<=0) && (rs+n>=ls))) &&
-                                                    (r_ `isSubsetOf` l  == ((n>=0) && (rs+n<=ls)))
-                               isSubsetOf    = genIsSubsetOfBy (withCC (\_ _ -> True  ))
-                               test3 l ls r rs = and [test3_ n | n <- [0..max ls rs]]
-                                where test3_ n = (l `isSubsetOf'` r == ((ls<=rs) && (n>=ls))) &&
-                                                 (r `isSubsetOf'` l == ((rs<=ls) && (n>=rs)))
-                                       where isSubsetOf' = genIsSubsetOfBy (withCC (\m _ -> m /= n))
+-- | Test the isSubsetOfBy function
+testIsSubsetOfBy :: IO ()
+testIsSubsetOfBy = let trees = take num $ concatMap (\(_,ts) -> ts) allAVL
+                       num   = 1000
+                   in do title "isSubsetOfBy"
+                         putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
+                         if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
+                         -- test1 & test2 chack same behaviour as isSubsetOf
+                         -- test3 checks behviour for comarison functions that may return (Eq False)
+                      where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2,test3]
+                            test1 l ls r rs = (l `isSubset` r == (ls<=rs)) &&
+                                              (r `isSubset` l == (rs<=ls))
+                            test2 l ls r rs = and  [test2_ n $ map' (n+) r | n <- [(-rs)..ls]]
+                             where test2_ n r_ = (l  `isSubset` r_ == ((n<=0) && (rs+n>=ls))) &&
+                                                 (r_ `isSubset` l  == ((n>=0) && (rs+n<=ls)))
+                            isSubset        = isSubsetOfBy (withCC (\_ _ -> True  ))
+                            test3 l ls r rs = and [test3_ n | n <- [0..max ls rs]]
+                             where test3_ n = (l `isSubset'` r == ((ls<=rs) && (n>=ls))) &&
+                                              (r `isSubset'` l == ((rs<=ls) && (n>=rs)))
+                                    where isSubset' = isSubsetOfBy (withCC (\m _ -> m /= n))
 
--- | Test the genVenn function
-testGenVenn :: IO ()
-testGenVenn =
+-- | Test the venn function. Also exercises disjointUnion
+testVenn :: IO ()
+testVenn =
  let trees = concatMap (\(_,ts) -> ts) (take 5 allAVL) -- All trees of height 4 or less = 335 trees (112,225 pairs)
      num   = length trees
- in do title "genVenn"
+ in do title "venn"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
        if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
    where test  l ls r rs = all (\f -> f l ls r rs) [test1,test2]
-         test1 l ls r rs = let (lr,i,rl) = venn l r
+         test1 l ls r rs = let (lr,i,rl) = ven l r
                            in and [all isBalanced [lr,i,rl]
-                                  ,asListL lr == listDiff         [0..ls-1] [0..rs-1]
-                                  ,asListL i  == listIntersection [0..ls-1] [0..rs-1]
-                                  ,asListL rl == listDiff         [0..rs-1] [0..ls-1]
+                                  ,asListL lr                    == listDiff         [0..ls-1] [0..rs-1]
+                                  ,asListL i                     == listIntersection [0..ls-1] [0..rs-1]
+                                  ,asListL rl                    == listDiff         [0..rs-1] [0..ls-1]
+                                  ,asListL (disu i (disu rl lr)) == listUnion        [0..ls-1] [0..rs-1]
                                   ]
-         test2 l ls r rs = and  [test2_ $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-          where test2_ r_ = let (lr,i,rl) = venn l r_
+         test2 l ls r rs = and  [test2_ $ map' (n+) r | n <- [(-rs)..ls]]
+          where test2_ r_ = let (lr,i,rl) = ven l r_
                             in and [all isBalanced [lr,i,rl]
-                                   ,asListL lr == listDiff         (asListL l ) (asListL r_)
-                                   ,asListL i  == listIntersection (asListL l ) (asListL r_)
-                                   ,asListL rl == listDiff         (asListL r_) (asListL l )
+                                   ,asListL lr                    == listDiff         (asListL l ) (asListL r_)
+                                   ,asListL i                     == listIntersection (asListL l ) (asListL r_)
+                                   ,asListL rl                    == listDiff         (asListL r_) (asListL l )
+                                   ,asListL (disu i (disu rl lr)) == listUnion        (asListL l ) (asListL r_)
                                    ]
-         venn = genVenn fstCC
+         ven  = venn fstCC
+         disu = disjointUnion compare
 
--- | Test the genVennMaybe function
-testGenVennMaybe :: IO ()
-testGenVennMaybe =
+-- | Test the vennMaybe function.
+testVennMaybe :: IO ()
+testVennMaybe =
  let trees = concatMap (\(_,ts) -> ts) (take 5 allAVL) -- All trees of height 4 or less = 335 trees (112,225 pairs)
      num   = length trees
- in do title "genVennMaybe"
+ in do title "vennMaybe"
        putStrLn $ "Testing " ++ show (num*num) ++ " tree pairs.."
        if and [test l ls r rs | (l,ls) <- trees, (r,rs) <- trees] then passed else failed
    where test  l ls r rs = and [t cmp l ls r rs| t<-[test1], cmp<-[cmpAll,cmpNone,cmpEven,cmpOdd]]
-         test1 cmp l ls r rs = and  [test1_ $ mapAVL' (n+) r | n <- [(-rs)..ls]]
-          where test1_ r_ = let (lr,i,rl) = genVennMaybe cmp  l r_
+         test1 cmp l ls r rs = and  [test1_ $ map' (n+) r | n <- [(-rs)..ls]]
+          where test1_ r_ = let (lr,i,rl) = vennMaybe cmp  l r_
                             in and [all isBalanced [lr,i,rl]
                                    ,asListL lr == listDiff (asListL l ) (asListL r_)
                                    ,asListL rl == listDiff (asListL r_) (asListL l )
                                    ,asListL i  == listIntersectionMaybe cmp (asListL l ) (asListL r_)
+                                   ,asListL (disu i (disu rl lr)) == listUnion (asListL i) (listUnion (asListL lr) (asListL rl))
                                    ]
          cmpAll  = withCC' (\x _ -> Just x)
          cmpNone = withCC' (\_ _ -> Nothing)
          cmpEven = withCC' (\x _ -> if even x then Just x else Nothing)
          cmpOdd  = withCC' (\x _ -> if odd  x then Just x else Nothing)
+         disu = disjointUnion compare
 
 -- | Test compareHeight function
 testCompareHeight :: IO ()
@@ -1192,20 +1199,20 @@ testCompareHeight = let trees = take num $ concatMap (\(h,ts) -> [(t,h)|(t,_)<-t
                        where test l lh r rh = compareHeight l r == compare lh rh
 
 -- | Test Zipper open\/close
-testGenOpenClose :: IO ()
-testGenOpenClose = do title "Zipper open/close"
-                      exhaustiveTest test (take 5 allNonEmptyAVL)
-                   where test _ s t = all test_ [0..s-1]
-                          where test_ n = let z  = genAssertOpen (compare n) t
-                                              t_ = close z
-                                          in (getCurrent z == n) && (isBalanced t_) && (asListL t_ == [0..s-1])
+testOpenClose :: IO ()
+testOpenClose = do title "Zipper open/close"
+                   exhaustiveTest test (take 5 allNonEmptyAVL)
+                 where test _ s t = all test_ [0..s-1]
+                        where test_ n = let z  = assertOpen (compare n) t
+                                            t_ = close z
+                                        in (getCurrent z == n) && (isBalanced t_) && (asListL t_ == [0..s-1])
 -- | Test Zipper delClose
 testDelClose :: IO ()
 testDelClose = do title "Zipper delClose"
                   exhaustiveTest test (take 5 allNonEmptyAVL)
                 where test _ s t = all test_ [0..s-1]
-                       where test_ n = let t_ = delClose $ genAssertOpen (compare n) t
-                                       in (isBalanced t_) -- && (insert n (asListL t_) == [0..s-1])
+                       where test_ n = let t_ = delClose $ assertOpen (compare n) t
+                                       in (isBalanced t_) -- && (L.insert n (asListL t_) == [0..s-1])
 
 -- | Test Zipper assertOpenL\/close
 testOpenLClose :: IO ()
@@ -1228,7 +1235,7 @@ testMoveL :: IO ()
 testMoveL = do title "Zipper assertMoveL/isRightmost"
                exhaustiveTest test (take 5 allNonEmptyAVL)
             where test _ s t = let zavls@(z:zs) = take s $ iterate assertMoveL (assertOpenR t)
-                               in (map getCurrent zavls == reverse [0..s-1]) && (all test_ zavls) &&
+                               in (L.map getCurrent zavls == L.reverse [0..s-1]) && (all test_ zavls) &&
                                   (isRightmost z) && (not $ any isRightmost zs)
                    where test_ zavl = let t_ = close zavl
                                       in (isBalanced t_) && (asListL t_ == [0..s-1])
@@ -1238,7 +1245,7 @@ testMoveR :: IO ()
 testMoveR = do title "Zipper assertMoveR/isLeftmost"
                exhaustiveTest test (take 5 allNonEmptyAVL)
             where test _ s t = let zavls@(z:zs) = take s $ iterate assertMoveR (assertOpenL t)
-                               in (map getCurrent zavls == [0..s-1]) && (all test_ zavls) &&
+                               in (L.map getCurrent zavls == [0..s-1]) && (all test_ zavls) &&
                                   (isLeftmost z) && (not $ any isLeftmost zs)
                    where test_ zavl = let t_ = close zavl
                                       in (isBalanced t_) && (asListL t_ == [0..s-1])
@@ -1248,7 +1255,7 @@ testInsertL :: IO ()
 testInsertL = do title "Zipper insertL"
                  exhaustiveTest test (take 5 allNonEmptyAVL)
               where test _ s t = all test_ [0..s-1]
-                     where test_ n = let z  = insertL s $ genAssertOpen (compare n) t
+                     where test_ n = let z  = insertL s $ assertOpen (compare n) t
                                          t_ = close z
                                      in (getCurrent z == n) && (isBalanced t_) &&
                                         (asListL t_ == [0..n-1] ++ s:[n..s-1])
@@ -1257,7 +1264,7 @@ testInsertMoveL :: IO ()
 testInsertMoveL = do title "Zipper insertMoveL"
                      exhaustiveTest test (take 5 allNonEmptyAVL)
                   where test _ s t = all test_ [0..s-1]
-                         where test_ n = let z  = insertMoveL s $ genAssertOpen (compare n) t
+                         where test_ n = let z  = insertMoveL s $ assertOpen (compare n) t
                                              t_ = close z
                                          in (getCurrent z == s) && (isBalanced t_) &&
                                             (asListL t_ == [0..n-1] ++ s:[n..s-1])
@@ -1267,7 +1274,7 @@ testInsertR :: IO ()
 testInsertR = do title "Zipper insertR"
                  exhaustiveTest test (take 5 allNonEmptyAVL)
               where test _ s t = all test_ [0..s-1]
-                     where test_ n = let z  = insertR (genAssertOpen (compare n) t) s
+                     where test_ n = let z  = insertR (assertOpen (compare n) t) s
                                          t_ = close z
                                      in (getCurrent z == n) && (isBalanced t_) &&
                                         (asListL t_ == [0..n] ++ s:[(n+1)..s-1])
@@ -1277,7 +1284,7 @@ testInsertMoveR :: IO ()
 testInsertMoveR = do title "Zipper insertMoveR"
                      exhaustiveTest test (take 5 allNonEmptyAVL)
                   where test _ s t = all test_ [0..s-1]
-                         where test_ n = let z  = insertMoveR (genAssertOpen (compare n) t) s
+                         where test_ n = let z  = insertMoveR (assertOpen (compare n) t) s
                                              t_ = close z
                                          in (getCurrent z == s) && (isBalanced t_) &&
                                             (asListL t_ == [0..n] ++ s:[(n+1)..s-1])
@@ -1287,7 +1294,7 @@ testInsertTreeL :: IO ()
 testInsertTreeL = do title "Zipper insertTreeL"
                      exhaustiveTest test (take 5 allNonEmptyAVL)
                   where test _ s t = all test_ [0..s-1]
-                         where test_ n = let z  = insertTreeL t $ genAssertOpen (compare n) t
+                         where test_ n = let z  = insertTreeL t $ assertOpen (compare n) t
                                              t_ = close z
                                          in (getCurrent z == n) && (isBalanced t_) &&
                                             (asListL t_ == [0..n-1] ++ [0..s-1] ++ [n..s-1])
@@ -1297,7 +1304,7 @@ testInsertTreeR :: IO ()
 testInsertTreeR = do title "Zipper insertTreeR"
                      exhaustiveTest test (take 5 allNonEmptyAVL)
                   where test _ s t = all test_ [0..s-1]
-                         where test_ n = let z  = insertTreeR (genAssertOpen (compare n) t) t
+                         where test_ n = let z  = insertTreeR (assertOpen (compare n) t) t
                                              t_ = close z
                                          in (getCurrent z == n) && (isBalanced t_) &&
                                             (asListL t_ == [0..n] ++ [0..s-1] ++ [n+1..s-1])
@@ -1306,8 +1313,8 @@ testDelMoveL :: IO ()
 testDelMoveL = do title "Zipper assertDelMoveL"
                   exhaustiveTest test (take 5 allNonEmptyAVL)
                where test _ s t = let zavls = take s $ iterate assertDelMoveL $ insertR (assertOpenR t) s
-                                  in (map getCurrent zavls == reverse [0..s-1]) &&
-                                     (and $ zipWith test_ zavls $ reverse [0..s-1])
+                                  in (L.map getCurrent zavls == L.reverse [0..s-1]) &&
+                                     (and $ zipWith test_ zavls $ L.reverse [0..s-1])
                       where test_ zavl s_ = let t_ = close zavl
                                             in (isBalanced t_) && (asListL t_ == [0..s_] ++ [s])
 
@@ -1316,7 +1323,7 @@ testDelMoveR :: IO ()
 testDelMoveR = do title "Zipper assertDelMoveR"
                   exhaustiveTest test (take 5 allNonEmptyAVL)
                where test _ s t = let zavls = take s $ iterate assertDelMoveR $ insertL s $ assertOpenL t
-                                  in (map getCurrent zavls == [0..s-1]) &&
+                                  in (L.map getCurrent zavls == [0..s-1]) &&
                                      (and $ zipWith test_ zavls [0..s-1])
                       where test_ zavl s_ = let t_ = close zavl
                                             in (isBalanced t_) && (asListL t_ == s:[s_..s-1])
@@ -1326,7 +1333,7 @@ testDelAllL :: IO ()
 testDelAllL = do title "Zipper delAllL"
                  exhaustiveTest test (take 5 allNonEmptyAVL)
               where test _ s t = all test_ [0..s-1]
-                     where test_ n = let z   = delAllL $ genAssertOpen (compare n) t
+                     where test_ n = let z   = delAllL $ assertOpen (compare n) t
                                          t_  = close z
                                          t__ = close $ insertTreeL t z
                                      in (isBalanced t_ ) && (asListL t_  == [n..s-1]) &&
@@ -1337,7 +1344,7 @@ testDelAllR :: IO ()
 testDelAllR = do title "Zipper delAllR"
                  exhaustiveTest test (take 5 allNonEmptyAVL)
               where test _ s t = all test_ [0..s-1]
-                     where test_ n = let z   = delAllR $ genAssertOpen (compare n) t
+                     where test_ n = let z   = delAllR $ assertOpen (compare n) t
                                          t_  = close z
                                          t__ = close $ insertTreeR z t
                                      in (isBalanced t_ ) && (asListL t_  == [0..n]) &&
@@ -1348,7 +1355,7 @@ testDelAllCloseL :: IO ()
 testDelAllCloseL = do title "Zipper delAllCloseL"
                       exhaustiveTest test (take 5 allNonEmptyAVL)
                    where test _ s t = all test_ [0..s-1]
-                          where test_ n = let t_   = delAllCloseL $ genAssertOpen (compare n) t
+                          where test_ n = let t_   = delAllCloseL $ assertOpen (compare n) t
                                           in (isBalanced t_ ) && (asListL t_  == [n..s-1])
 
 -- | Test Zipper delAllIncCloseL
@@ -1356,7 +1363,7 @@ testDelAllIncCloseL :: IO ()
 testDelAllIncCloseL = do title "Zipper delAllIncCloseL"
                          exhaustiveTest test (take 5 allNonEmptyAVL)
                       where test _ s t = all test_ [0..s-1]
-                             where test_ n = let t_   = delAllIncCloseL $ genAssertOpen (compare n) t
+                             where test_ n = let t_   = delAllIncCloseL $ assertOpen (compare n) t
                                              in (isBalanced t_ ) && (asListL t_  == [n+1..s-1])
 
 -- | Test Zipper delAllCloseR
@@ -1364,7 +1371,7 @@ testDelAllCloseR :: IO ()
 testDelAllCloseR = do title "Zipper delAllCloseR"
                       exhaustiveTest test (take 5 allNonEmptyAVL)
                    where test _ s t = all test_ [0..s-1]
-                          where test_ n = let t_   = delAllCloseR $ genAssertOpen (compare n) t
+                          where test_ n = let t_   = delAllCloseR $ assertOpen (compare n) t
                                           in (isBalanced t_ ) && (asListL t_  == [0..n])
 
 -- | Test Zipper delAllIncCloseR
@@ -1372,7 +1379,7 @@ testDelAllIncCloseR :: IO ()
 testDelAllIncCloseR = do title "Zipper delAllIncCloseR"
                          exhaustiveTest test (take 5 allNonEmptyAVL)
                       where test _ s t = all test_ [0..s-1]
-                             where test_ n = let t_   = delAllIncCloseR $ genAssertOpen (compare n) t
+                             where test_ n = let t_   = delAllIncCloseR $ assertOpen (compare n) t
                                              in (isBalanced t_ ) && (asListL t_  == [0..n-1])
 
 -- | Test Zipper sizeL\/sizeR\/sizeZAVL
@@ -1380,52 +1387,52 @@ testZipSize :: IO ()
 testZipSize = do title "Zipper sizeL/sizeR/sizeZAVL"
                  exhaustiveTest test (take 5 allNonEmptyAVL)
               where test _ s t = all test_ [0..s-1]
-                     where test_ n = let z = genAssertOpen (compare n) t
+                     where test_ n = let z = assertOpen (compare n) t
                                      in (sizeL z == n) && (sizeR z == (s-1)-n) && (sizeZAVL z == s)
 
--- | Test Zipper genTryOpenGE
-testGenTryOpenGE :: IO ()
-testGenTryOpenGE = do title "Zipper genTryOpenGE"
-                      exhaustiveTest test (take 5 allNonEmptyAVL)
-                   where test _ s t = let t_ = mapAVL' (2*) t
-                                      in all (testE t_) [0,2..2*s-2] && all (testO t_) [(-1),1..2*s-3]
-                          where testE t_ n = let Just z = tryOpenGE n t_
-                                                 t__    = close z
-                                          in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
-                                testO t_ n = let Just z = tryOpenGE n t_
-                                                 t__    = close z
-                                          in (getCurrent z == n+1) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
-                                tryOpenGE a = genTryOpenGE (compare a)
+-- | Test Zipper tryOpenGE
+testTryOpenGE :: IO ()
+testTryOpenGE = do title "Zipper tryOpenGE"
+                   exhaustiveTest test (take 5 allNonEmptyAVL)
+                where test _ s t = let t_ = map' (2*) t
+                                   in all (testE t_) [0,2..2*s-2] && all (testO t_) [(-1),1..2*s-3]
+                       where testE t_ n = let Just z = tryOGE n t_
+                                              t__    = close z
+                                       in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
+                             testO t_ n = let Just z = tryOGE n t_
+                                              t__    = close z
+                                       in (getCurrent z == n+1) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
+                             tryOGE a = tryOpenGE (compare a)
 
--- | Test Zipper genTryOpenLE
-testGenTryOpenLE :: IO ()
-testGenTryOpenLE = do title "Zipper genTryOpenLE"
-                      exhaustiveTest test (take 5 allNonEmptyAVL)
-                   where test _ s t = let t_ = mapAVL' (2*) t
-                                      in all (testE t_) [0,2..2*s-2] && all (testO t_) [1,3..2*s-1]
-                          where testE t_ n = let Just z = tryOpenLE n t_
-                                                 t__    = close z
-                                          in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
-                                testO t_ n = let Just z = tryOpenLE n t_
-                                                 t__    = close z
-                                          in (getCurrent z == n-1) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
-                                tryOpenLE a = genTryOpenLE (compare a)
+-- | Test Zipper tryOpenLE
+testTryOpenLE :: IO ()
+testTryOpenLE = do title "Zipper tryOpenLE"
+                   exhaustiveTest test (take 5 allNonEmptyAVL)
+                where test _ s t = let t_ = map' (2*) t
+                                   in all (testE t_) [0,2..2*s-2] && all (testO t_) [1,3..2*s-1]
+                       where testE t_ n = let Just z = tryOLE n t_
+                                              t__    = close z
+                                       in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
+                             testO t_ n = let Just z = tryOLE n t_
+                                              t__    = close z
+                                       in (getCurrent z == n-1) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
+                             tryOLE a = tryOpenLE (compare a)
 
--- | Test Zipper genOpenEither (also tests fill and fillClose)
-testGenOpenEither :: IO ()
-testGenOpenEither = do title "Zipper genOpenEither"
-                       exhaustiveTest test (take 6 allAVL)
-                    where test _ s t = let t_ = mapAVL' (2*) t
-                                       in all (testE t_) [0,2..2*s-2] && all (testO t_) [-1,1..2*s-1]
-                           where testE t_ n = let Right z = openEither n t_
-                                                  t__     = close z
-                                              in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
-                                 testO t_ n = let Left p = openEither n t_
-                                                  t__    = close (fill n p)
-                                                  t___   = fillClose n p
-                                              in (isBalanced t__) && (isBalanced t___) && (t__ == t___) &&
-                                                 (asListL t__ == ([0,2..n-1] ++ n : [n+1,n+3..2*s-2]))
-                                 openEither a = genOpenEither (compare a)
+-- | Test Zipper openEither (also tests fill and fillClose)
+testOpenEither :: IO ()
+testOpenEither = do title "Zipper openEither"
+                    exhaustiveTest test (take 6 allAVL)
+                 where test _ s t = let t_ = map' (2*) t
+                                    in all (testE t_) [0,2..2*s-2] && all (testO t_) [-1,1..2*s-1]
+                        where testE t_ n = let Right z = openEith n t_
+                                               t__     = close z
+                                           in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
+                              testO t_ n = let Left p = openEith n t_
+                                               t__    = close (fill n p)
+                                               t___   = fillClose n p
+                                           in (isBalanced t__) && (isBalanced t___) && (t__ == t___) &&
+                                              (asListL t__ == ([0,2..n-1] ++ n : [n+1,n+3..2*s-2]))
+                              openEith a = openEither (compare a)
 
 
 
@@ -1433,17 +1440,17 @@ testGenOpenEither = do title "Zipper genOpenEither"
 testBAVLtoZipper :: IO ()
 testBAVLtoZipper = do title "BAVLtoZipper"
                       exhaustiveTest test (take 6 allAVL)
-                   where test _ s t = let t_ = mapAVL' (2*) t
+                   where test _ s t = let t_ = map' (2*) t
                                       in all (testE t_) [0,2..2*s-2] && all (testO t_) [-1,1..2*s-1]
-                          where testE t_ n = let bavl = openBAVL n t_
+                          where testE t_ n = let bavl = oBAVL n t_
                                                  Right z = anyBAVLtoEither bavl
                                                  t__ = close z
                                              in (getCurrent z == n) && (isBalanced t__) && (asListL t__ == [0,2..2*s-2])
-                                testO t_ n = let bavl = openBAVL n t_
+                                testO t_ n = let bavl = oBAVL n t_
                                                  Left p = anyBAVLtoEither bavl
                                                  t__   = fillClose n p
                                              in (isBalanced t__) && (asListL t__ == ([0,2..n-1] ++ n : [n+1,n+3..2*s-2]))
-                                openBAVL e = genOpenBAVL (compare e)
+                                oBAVL e = openBAVL (compare e)
 
 
 -- | Test Show,Read,Eq instances
@@ -1460,7 +1467,7 @@ testReadPath = do title "ReadPath"
 
 title :: String -> IO ()
 title str = let titl = "* Test " ++ str ++ " *"
-                mark = replicate (length titl) '*'
+                mark = L.replicate (length titl) '*'
             in  putStrLn "" >> putStrLn mark >> putStrLn titl >> putStrLn mark
 
 passed :: IO ()

@@ -840,7 +840,7 @@ vennMaybeH cmp = v where
         UBT6(ab,hab,cs2,cl2,lba,hlba)   -> case joinH lba hlba mrba hmrba of
          UBT2(ba,hba)                   -> UBT6(ab,hab,cs2,cl2,ba,hba)
   -- a = b
-  Eq mbc ->                                   case v    cs           cl   ra hra rb hrb of
+  Eq mbc ->                            case v    cs           cl   ra hra rb hrb of
    UBT6(rab,hrab,cs0,cl0,rba,hrba)  -> case (case mbc of
                                              Nothing -> v    cs0          cl0  la hla lb hlb
                                              Just c  -> v (c:cs0) INCINT1(cl0) la hla lb hlb
@@ -888,10 +888,46 @@ vennMaybeH cmp = v where
 -- the right order (c a b)
 forka :: (a -> b -> COrdering c) -> a -> AVL b -> UINT -> UBT5(AVL b,UINT,Maybe c,AVL b,UINT)
 forka cmp a tb htb = f tb htb where
- f  E        h = UBT5(E,h,Nothing,E,h)
- f (N l b r) h = f_ l DECINT2(h) b r DECINT1(h)
- f (Z l b r) h = f_ l DECINT1(h) b r DECINT1(h)
- f (P l b r) h = f_ l DECINT1(h) b r DECINT2(h)
+ f    E        _    = UBT5(E,L(0),Nothing,E,L(0))
+ f n@(N _ b r) L(2) = case cmp a b of -- l must be E, r must be Z
+                      Lt   -> UBT5(E,L(0),Nothing,n,L(2))
+                      Eq c -> UBT5(E,L(0),Just c ,r,L(1))
+                      Gt   -> case r of
+                              Z _ br _ -> case cmp a br of -- l & r must be E
+                                          Lt   -> UBT5(Z E b E,L(1),Nothing,r,L(1))
+                                          Eq c -> UBT5(Z E b E,L(1),Just c ,E,L(0))
+                                          Gt   -> UBT5(n      ,L(2),Nothing,E,L(0))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+ f   (N l b r) h    = f_ l DECINT2(h) b r DECINT1(h)
+ f z@(Z l b r) L(2) = case cmp a b of -- l & r must be Z
+                      Lt   -> case l of
+                              Z _ bl _ -> case cmp a bl of -- l & r must be E
+                                          Lt   -> UBT5(E,L(0),Nothing,z      ,L(2))
+                                          Eq c -> UBT5(E,L(0),Just c ,N E b r,L(2))
+                                          Gt   -> UBT5(l,L(1),Nothing,N E b r,L(2))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+                      Eq c -> UBT5(l,L(1),Just c,r,L(1))
+                      Gt   -> case r of
+                              Z _ br _ -> case cmp a br of -- l & r must be E
+                                          Lt   -> UBT5(P l b E,L(2),Nothing,r,L(1))
+                                          Eq c -> UBT5(P l b E,L(2),Just c ,E,L(0))
+                                          Gt   -> UBT5(z      ,L(2),Nothing,E,L(0))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+ f z@(Z _ b _) L(1) = case cmp a b of -- l & r must be E
+                      Lt   -> UBT5(E,L(0),Nothing,z,L(1))
+                      Eq c -> UBT5(E,L(0),Just c ,E,L(0))
+                      Gt   -> UBT5(z,L(1),Nothing,E,L(0))
+ f   (Z l b r) h    = f_ l DECINT1(h) b r DECINT1(h)
+ f p@(P l b _) L(2) = case cmp a b of -- l must be Z, r must be E
+                      Lt   -> case l of
+                              Z _ bl _ -> case cmp a bl of -- l & r must be E
+                                          Lt   -> UBT5(E,L(0),Nothing,p      ,L(2))
+                                          Eq c -> UBT5(E,L(0),Just c ,Z E b E,L(1))
+                                          Gt   -> UBT5(l,L(1),Nothing,Z E b E,L(1))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+                      Eq c -> UBT5(l,L(1),Just c ,E,L(0))
+                      Gt   -> UBT5(p,L(2),Nothing,E,L(0))
+ f   (P l b r) h    = f_ l DECINT1(h) b r DECINT2(h)
  f_ l hl b r hr = case cmp a b of
                   Lt   ->                            case f l hl of
                           UBT5(ll,hll,mbc,lr,hlr) -> case spliceH lr hlr b r hr of
@@ -900,19 +936,59 @@ forka cmp a tb htb = f tb htb where
                   Gt   ->                            case f r hr of
                           UBT5(rl,hrl,mbc,rr,hrr) -> case spliceH l hl b rl hrl of
                            UBT2(l_,hl_)           -> UBT5(l_,hl_,mbc,rr,hrr)
+
+-- This should be exactly the same as forka, but with the following swaps:
+--  * a <-> b, except is compare!
+--  * Lt <-> Gt (becasuse we didn't swap in compare)
 forkb :: (a -> b -> COrdering c) -> b -> AVL a -> UINT -> UBT5(AVL a,UINT,Maybe c,AVL a,UINT)
 forkb cmp b ta hta = f ta hta where
- f  E        h = UBT5(E,h,Nothing,E,h)
- f (N l a r) h = f_ l DECINT2(h) a r DECINT1(h)
- f (Z l a r) h = f_ l DECINT1(h) a r DECINT1(h)
- f (P l a r) h = f_ l DECINT1(h) a r DECINT2(h)
+ f    E        _    = UBT5(E,L(0),Nothing,E,L(0))
+ f n@(N _ a r) L(2) = case cmp a b of -- l must be E, r must be Z
+                      Gt   -> UBT5(E,L(0),Nothing,n,L(2))
+                      Eq c -> UBT5(E,L(0),Just c ,r,L(1))
+                      Lt   -> case r of
+                              Z _ ar _ -> case cmp ar b of -- l & r must be E
+                                          Gt   -> UBT5(Z E a E,L(1),Nothing,r,L(1))
+                                          Eq c -> UBT5(Z E a E,L(1),Just c ,E,L(0))
+                                          Lt   -> UBT5(n      ,L(2),Nothing,E,L(0))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+ f   (N l a r) h    = f_ l DECINT2(h) a r DECINT1(h)
+ f z@(Z l a r) L(2) = case cmp a b of -- l & r must be Z
+                      Gt   -> case l of
+                              Z _ al _ -> case cmp al b of -- l & r must be E
+                                          Gt   -> UBT5(E,L(0),Nothing,z      ,L(2))
+                                          Eq c -> UBT5(E,L(0),Just c ,N E a r,L(2))
+                                          Lt   -> UBT5(l,L(1),Nothing,N E a r,L(2))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+                      Eq c -> UBT5(l,L(1),Just c,r,L(1))
+                      Lt   -> case r of
+                              Z _ ar _ -> case cmp ar b of -- l & r must be E
+                                          Gt   -> UBT5(P l a E,L(2),Nothing,r,L(1))
+                                          Eq c -> UBT5(P l a E,L(2),Just c ,E,L(0))
+                                          Lt   -> UBT5(z      ,L(2),Nothing,E,L(0))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+ f z@(Z _ a _) L(1) = case cmp a b of -- l & r must be E
+                      Gt   -> UBT5(E,L(0),Nothing,z,L(1))
+                      Eq c -> UBT5(E,L(0),Just c ,E,L(0))
+                      Lt   -> UBT5(z,L(1),Nothing,E,L(0))
+ f   (Z l a r) h    = f_ l DECINT1(h) a r DECINT1(h)
+ f p@(P l a _) L(2) = case cmp a b of -- l must be Z, r must be E
+                      Gt   -> case l of
+                              Z _ al _ -> case cmp al b of -- l & r must be E
+                                          Gt   -> UBT5(E,L(0),Nothing,p      ,L(2))
+                                          Eq c -> UBT5(E,L(0),Just c ,Z E a E,L(1))
+                                          Lt   -> UBT5(l,L(1),Nothing,Z E a E,L(1))
+                              _        -> undefined `seq` UBT5(E,L(0),Nothing,E,L(0))
+                      Eq c -> UBT5(l,L(1),Just c ,E,L(0))
+                      Lt   -> UBT5(p,L(2),Nothing,E,L(0))
+ f   (P l a r) h    = f_ l DECINT1(h) a r DECINT2(h)
  f_ l hl a r hr = case cmp a b of
-                  Lt   ->                            case f r hr of
-                          UBT5(rl,hrl,mbc,rr,hrr) -> case spliceH l hl a rl hrl of
-                           UBT2(l_,hl_)           -> UBT5(l_,hl_,mbc,rr,hrr)
-                  Eq c -> UBT5(l,hl,Just c,r,hr)
                   Gt   ->                            case f l hl of
                           UBT5(ll,hll,mbc,lr,hlr) -> case spliceH lr hlr a r hr of
                            UBT2(r_,hr_)           -> UBT5(ll,hll,mbc,r_,hr_)
+                  Eq c -> UBT5(l,hl,Just c,r,hr)
+                  Lt   ->                            case f r hr of
+                          UBT5(rl,hrl,mbc,rr,hrr) -> case spliceH l hl a rl hrl of
+                           UBT2(l_,hl_)           -> UBT5(l_,hl_,mbc,rr,hrr)
 
 

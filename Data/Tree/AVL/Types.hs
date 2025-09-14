@@ -68,28 +68,29 @@ import Data.Monoid
 --
 -- This convention is same as that used by the overloaded 'compare' method from 'Ord' class.
 --
--- WARNING: The constructors of this data type are exported from this module but not from
--- the top level 'AVL' wrapper ("Data.Tree.AVL"). Don't try to construct your own 'AVL'
--- trees unless you're sure you know what your doing. If you end up creating and using
--- 'AVL' trees that aren't you'll break most of the functions in this library.
---
 -- Controlling Strictness.
 --
--- The 'AVL' data type is declared as non-strict in all it's fields,
+-- The 'AVL' tree data type is declared as non-strict in all it's fields,
 -- but all the functions in this library behave as though it is strict in its
 -- recursive fields (left and right sub-trees). Strictness in the element field is
 -- controlled either by using the strict variants of functions (defined in this library
 -- where appropriate), or using strict variants of the combinators defined in "Data.COrdering",
 -- or using 'seq' etc. in your own code (in any combining comparisons you define, for example).
 --
--- The Eq and Ord instances.
+-- The 'Eq' and 'Ord' instances.
 --
 -- Begining with version 3.0 these are now derived, and hence are defined in terms of
 -- strict structural equality, rather than observational equivalence. The reason for
 -- this change is that the observational equivalence abstraction was technically breakable
 -- with the exposed API. But since this change, some functions which were previously
--- considered unsafe have become safe to expose (those that measure tree height).
+-- considered unsafe have become safe to expose (those that measure tree height, for example).
 --
+-- The 'Read' and 'Show' instances.
+--
+-- Begining with version 4.0 these are now derived to ensure consistency with 'Eq' instance.
+-- (Show now reveals the exact tree structure).
+--
+
 data AVL e = E                      -- ^ Empty Tree
            | N (AVL e) e (AVL e)    -- ^ BF=-1 (right height > left height)
            | Z (AVL e) e (AVL e)    -- ^ BF= 0
@@ -126,36 +127,36 @@ empty = E
 -- | Returns 'True' if an AVL tree is empty.
 --
 -- Complexity: O(1)
-{-# INLINE isEmpty #-}
 isEmpty :: AVL e -> Bool
 isEmpty E = True
 isEmpty _ = False
+{-# INLINE isEmpty #-}
 
 -- | Returns 'True' if an AVL tree is non-empty.
 --
 -- Complexity: O(1)
-{-# INLINE isNonEmpty #-}
 isNonEmpty :: AVL e -> Bool
 isNonEmpty E = False
 isNonEmpty _ = True
+{-# INLINE isNonEmpty #-}
 
 -- | Creates an AVL tree with just one element.
 --
 -- Complexity: O(1)
-{-# INLINE singleton #-}
 singleton :: e -> AVL e
 singleton e = Z E e E
+{-# INLINE singleton #-}
 
 -- | Create an AVL tree of two elements, occuring in same order as the arguments.
-{-# INLINE pair #-}
 pair :: e -> e -> AVL e
 pair e0 e1 = P (Z E e0 E) e1 E
+{-# INLINE pair #-}
 
 -- | If the AVL tree is a singleton (has only one element @e@) then this function returns @('Just' e)@.
 -- Otherwise it returns Nothing.
 --
 -- Complexity: O(1)
-{-# INLINE tryGetSingleton #-}
 tryGetSingleton :: AVL e -> Maybe e
 tryGetSingleton (Z E e _) = Just e -- Right subtree must be E too, but no need to waste time checking
 tryGetSingleton _         = Nothing
+{-# INLINE tryGetSingleton #-}

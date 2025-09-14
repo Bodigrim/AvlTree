@@ -16,10 +16,10 @@ module Data.Tree.AVL.Read
  assertReadR,tryReadR,
 
  -- ** Reading from /sorted/ AVL trees
- genAssertRead,genTryRead,genTryReadMaybe,genDefaultRead,
+ assertRead,tryRead,tryReadMaybe,defaultRead,
 
  -- ** Simple searches of /sorted/ AVL trees
- genContains,
+ contains,
 ) where
 
 import Prelude -- so haddock finds the symbols there
@@ -95,9 +95,9 @@ readRE (N _ _ r) _ = readRNE r  -- BF=-1, so right sub-tree cannot be empty.
 -- This function raises a error if the search fails.
 --
 -- Complexity: O(log n)
-genAssertRead :: AVL e -> (e -> COrdering a) -> a
-genAssertRead t c = genRead' t where
- genRead'  E        = error "genAssertRead failed."
+assertRead :: AVL e -> (e -> COrdering a) -> a
+assertRead t c = genRead' t where
+ genRead'  E        = error "assertRead failed."
  genRead' (N l e r) = genRead'' l e r
  genRead' (Z l e r) = genRead'' l e r
  genRead' (P l e r) = genRead'' l e r
@@ -107,42 +107,42 @@ genAssertRead t c = genRead' t where
                       Gt   -> genRead' r
 
 -- | General purpose function to perform a search of a sorted tree, using the supplied selector.
--- This function is similar to 'genAssertRead', but returns 'Nothing' if the search failed.
+-- This function is similar to 'assertRead', but returns 'Nothing' if the search failed.
 --
 -- Complexity: O(log n)
-genTryRead :: AVL e -> (e -> COrdering a) ->  Maybe a
-genTryRead t c = genTryRead' t where
- genTryRead'  E        = Nothing
- genTryRead' (N l e r) = genTryRead'' l e r
- genTryRead' (Z l e r) = genTryRead'' l e r
- genTryRead' (P l e r) = genTryRead'' l e r
- genTryRead''   l e r  = case c e of
-                         Lt   -> genTryRead' l
-                         Eq a -> Just a
-                         Gt   -> genTryRead' r
+tryRead :: AVL e -> (e -> COrdering a) ->  Maybe a
+tryRead t c = tryRead' t where
+ tryRead'  E        = Nothing
+ tryRead' (N l e r) = tryRead'' l e r
+ tryRead' (Z l e r) = tryRead'' l e r
+ tryRead' (P l e r) = tryRead'' l e r
+ tryRead''   l e r  = case c e of
+                      Lt   -> tryRead' l
+                      Eq a -> Just a
+                      Gt   -> tryRead' r
 
 -- | This version returns the result of the selector (without adding a 'Just' wrapper) if the search
 -- succeeds, or 'Nothing' if it fails.
 --
 -- Complexity: O(log n)
-genTryReadMaybe :: AVL e -> (e -> COrdering (Maybe a)) ->  Maybe a
-genTryReadMaybe t c = genTryRead' t where
- genTryRead'  E        = Nothing
- genTryRead' (N l e r) = genTryRead'' l e r
- genTryRead' (Z l e r) = genTryRead'' l e r
- genTryRead' (P l e r) = genTryRead'' l e r
- genTryRead''   l e r  = case c e of
-                         Lt     -> genTryRead' l
+tryReadMaybe :: AVL e -> (e -> COrdering (Maybe a)) ->  Maybe a
+tryReadMaybe t c = tryRead' t where
+ tryRead'  E        = Nothing
+ tryRead' (N l e r) = tryRead'' l e r
+ tryRead' (Z l e r) = tryRead'' l e r
+ tryRead' (P l e r) = tryRead'' l e r
+ tryRead''   l e r  = case c e of
+                         Lt     -> tryRead' l
                          Eq mba -> mba
-                         Gt     -> genTryRead' r
+                         Gt     -> tryRead' r
 
 -- | General purpose function to perform a search of a sorted tree, using the supplied selector.
--- This function is similar to 'genAssertRead', but returns a the default value (first argument) if
+-- This function is similar to 'assertRead', but returns a the default value (first argument) if
 -- the search fails.
 --
 -- Complexity: O(log n)
-genDefaultRead :: a -> AVL e -> (e -> COrdering a) -> a
-genDefaultRead d t c = genRead' t where
+defaultRead :: a -> AVL e -> (e -> COrdering a) -> a
+defaultRead d t c = genRead' t where
  genRead'  E        = d
  genRead' (N l e r) = genRead'' l e r
  genRead' (Z l e r) = genRead'' l e r
@@ -156,13 +156,13 @@ genDefaultRead d t c = genRead' t where
 -- Returns True if matching element is found.
 --
 -- Complexity: O(log n)
-genContains :: AVL e -> (e -> Ordering) -> Bool
-genContains t c = genContains' t where
- genContains'  E        = False
- genContains' (N l e r) = genContains'' l e r
- genContains' (Z l e r) = genContains'' l e r
- genContains' (P l e r) = genContains'' l e r
- genContains''   l e r  = case c e of
-                          LT -> genContains' l
-                          EQ -> True
-                          GT -> genContains' r
+contains :: AVL e -> (e -> Ordering) -> Bool
+contains t c = contains' t where
+ contains'  E        = False
+ contains' (N l e r) = contains'' l e r
+ contains' (Z l e r) = contains'' l e r
+ contains' (P l e r) = contains'' l e r
+ contains''   l e r  = case c e of
+                       LT -> contains' l
+                       EQ -> True
+                       GT -> contains' r

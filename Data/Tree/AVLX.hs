@@ -27,6 +27,7 @@ module Data.Tree.AVLX
  module Data.Tree.AVL.Write,
  module Data.Tree.AVL.Zipper,
  module Data.Tree.AVL.BinPath,
+ module Data.Tree.AVL.Deprecated,
  module Data.Tree.AVL.Internals.DelUtils,
  module Data.Tree.AVL.Internals.HAVL,
  module Data.Tree.AVL.Internals.HJoin,
@@ -57,5 +58,6 @@ import Data.Tree.AVL.Internals.HPush
 import Data.Tree.AVL.Internals.HSet
 import Data.Tree.AVL.Test.Counter
 import Data.Tree.AVL.Test.Utils
+import Data.Tree.AVL.Deprecated
 
 

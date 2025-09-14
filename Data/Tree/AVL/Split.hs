@@ -37,15 +37,15 @@ module Data.Tree.AVL.Split
  -- key is less than the current tree element. Or put another way, the current tree element
  -- is greater than the search key.
  --
- -- So (for example) the result of the 'genTakeLT' function is a tree containing all those elements
+ -- So (for example) the result of the 'takeLT' function is a tree containing all those elements
  -- which are less than the notional search key. That is, all those elements for which the
  -- supplied selector returns GT (not LT as you might expect). I know that seems backwards, but
  -- it's consistent if you think about it.
- genForkL,genForkR,genFork,
- genTakeLE,genDropGT,
- genTakeLT,genDropGE,
- genTakeGT,genDropLE,
- genTakeGE,genDropLT,
+ forkL,forkR,fork,
+ takeLE,dropGT,
+ takeLT,dropGE,
+ takeGT,dropLE,
+ takeGE,dropLT,
 ) where
 
 import Prelude -- so haddock finds the symbols there
@@ -653,17 +653,17 @@ rotateByR__ t n = case splitR n t L(0) of -- Tree Heights are relative!!
 -- according to the supplied selector.
 --
 -- Complexity: O(log n)
-genForkL :: (e -> Ordering) -> AVL e -> (AVL e, AVL e)
-genForkL c avl = let (HAVL l _,HAVL r _) = genForkL_ L(0) avl -- Tree heights are relative
+forkL :: (e -> Ordering) -> AVL e -> (AVL e, AVL e)
+forkL c avl = let (HAVL l _,HAVL r _) = forkL_ L(0) avl -- Tree heights are relative
                  in (l,r)
  where
- genForkL_ h  E        = (HAVL E h, HAVL E h)
- genForkL_ h (N l e r) = genForkL__ l DECINT2(h) e r DECINT1(h)
- genForkL_ h (Z l e r) = genForkL__ l DECINT1(h) e r DECINT1(h)
- genForkL_ h (P l e r) = genForkL__ l DECINT1(h) e r DECINT2(h)
- genForkL__ l hl e r hr = case c e of
+ forkL_ h  E        = (HAVL E h, HAVL E h)
+ forkL_ h (N l e r) = forkL__ l DECINT2(h) e r DECINT1(h)
+ forkL_ h (Z l e r) = forkL__ l DECINT1(h) e r DECINT1(h)
+ forkL_ h (P l e r) = forkL__ l DECINT1(h) e r DECINT2(h)
+ forkL__ l hl e r hr = case c e of
                           -- Current element > pivot, so goes in right half
-                          LT -> let (havl0,havl1) = genForkL_ hl l
+                          LT -> let (havl0,havl1) = forkL_ hl l
                                     havl1_ = spliceHAVL havl1 e (HAVL r hr)
                                 in  havl1_ `seq` (havl0, havl1_)
                           -- Current element = pivot, so goes in left half and stop here
@@ -671,7 +671,7 @@ genForkL c avl = let (HAVL l _,HAVL r _) = genForkL_ L(0) avl -- Tree heights ar
                                     rhavl = HAVL r hr
                                 in  lhavl `seq` rhavl `seq` (lhavl,rhavl)
                           -- Current element < pivot, so goes in left half
-                          GT -> let (havl0,havl1) = genForkL_ hr r
+                          GT -> let (havl0,havl1) = forkL_ hr r
                                     havl0_ = spliceHAVL (HAVL l hl) e havl0
                                 in  havl0_ `seq` (havl0_, havl1)
 
@@ -680,17 +680,17 @@ genForkL c avl = let (HAVL l _,HAVL r _) = genForkL_ L(0) avl -- Tree heights ar
 -- supplied selector.
 --
 -- Complexity: O(log n)
-genForkR :: (e -> Ordering) -> AVL e -> (AVL e, AVL e)
-genForkR c avl = let (HAVL l _,HAVL r _) = genForkR_ L(0) avl  -- Tree heights are relative
+forkR :: (e -> Ordering) -> AVL e -> (AVL e, AVL e)
+forkR c avl = let (HAVL l _,HAVL r _) = forkR_ L(0) avl  -- Tree heights are relative
                  in (l,r)
  where
- genForkR_ h  E        = (HAVL E h, HAVL E h)
- genForkR_ h (N l e r) = genForkR__ l DECINT2(h) e r DECINT1(h)
- genForkR_ h (Z l e r) = genForkR__ l DECINT1(h) e r DECINT1(h)
- genForkR_ h (P l e r) = genForkR__ l DECINT1(h) e r DECINT2(h)
- genForkR__ l hl e r hr = case c e of
+ forkR_ h  E        = (HAVL E h, HAVL E h)
+ forkR_ h (N l e r) = forkR__ l DECINT2(h) e r DECINT1(h)
+ forkR_ h (Z l e r) = forkR__ l DECINT1(h) e r DECINT1(h)
+ forkR_ h (P l e r) = forkR__ l DECINT1(h) e r DECINT2(h)
+ forkR__ l hl e r hr = case c e of
                           -- Current element > pivot, so goes in right half
-                          LT -> let (havl0,havl1) = genForkR_ hl l
+                          LT -> let (havl0,havl1) = forkR_ hl l
                                     havl1_ = spliceHAVL havl1 e (HAVL r hr)
                                 in  havl1_ `seq` (havl0, havl1_)
                           -- Current element = pivot, so goes in right half and stop here
@@ -698,26 +698,26 @@ genForkR c avl = let (HAVL l _,HAVL r _) = genForkR_ L(0) avl  -- Tree heights a
                                     lhavl = HAVL l hl
                                 in  lhavl `seq` rhavl `seq` (lhavl, rhavl)
                           -- Current element < pivot, so goes in left half
-                          GT -> let (havl0,havl1) = genForkR_ hr r
+                          GT -> let (havl0,havl1) = forkR_ hr r
                                     havl0_ = spliceHAVL (HAVL l hl) e havl0
                                 in  havl0_ `seq` (havl0_, havl1)
 
 
--- | Similar to 'genForkL' and 'genForkR', but returns any equal element found (instead of
+-- | Similar to 'forkL' and 'forkR', but returns any equal element found (instead of
 -- incorporating it into the left or right tree results respectively).
 --
 -- Complexity: O(log n)
-genFork :: (e -> COrdering a) -> AVL e -> (AVL e, Maybe a, AVL e)
-genFork c avl = let (HAVL l _, mba, HAVL r _) = genFork_ L(0) avl -- Tree heights are relative
+fork :: (e -> COrdering a) -> AVL e -> (AVL e, Maybe a, AVL e)
+fork c avl = let (HAVL l _, mba, HAVL r _) = fork_ L(0) avl -- Tree heights are relative
                 in (l,mba,r)
  where
- genFork_ h  E        = (HAVL E h, Nothing, HAVL E h)
- genFork_ h (N l e r) = genFork__ l DECINT2(h) e r DECINT1(h)
- genFork_ h (Z l e r) = genFork__ l DECINT1(h) e r DECINT1(h)
- genFork_ h (P l e r) = genFork__ l DECINT1(h) e r DECINT2(h)
- genFork__ l hl e r hr = case c e of
+ fork_ h  E        = (HAVL E h, Nothing, HAVL E h)
+ fork_ h (N l e r) = fork__ l DECINT2(h) e r DECINT1(h)
+ fork_ h (Z l e r) = fork__ l DECINT1(h) e r DECINT1(h)
+ fork_ h (P l e r) = fork__ l DECINT1(h) e r DECINT2(h)
+ fork__ l hl e r hr = case c e of
                           -- Current element > pivot
-                          Lt   -> let (havl0,mba,havl1) = genFork_ hl l
+                          Lt   -> let (havl0,mba,havl1) = fork_ hl l
                                       havl1_ = spliceHAVL havl1 e (HAVL r hr)
                                   in  havl1_ `seq` (havl0, mba, havl1_)
                           -- Current element = pivot
@@ -725,113 +725,113 @@ genFork c avl = let (HAVL l _, mba, HAVL r _) = genFork_ L(0) avl -- Tree height
                                       rhavl = HAVL r hr
                                   in  lhavl `seq` rhavl `seq` (lhavl, Just a, rhavl)
                           -- Current element < pivot
-                          Gt   -> let (havl0,mba,havl1) = genFork_ hr r
+                          Gt   -> let (havl0,mba,havl1) = fork_ hr r
                                       havl0_ = spliceHAVL (HAVL l hl) e havl0
                                   in  havl0_ `seq` (havl0_, mba, havl1)
 
--- | This is a simplified version of 'genForkL' which returns a sorted tree containing
+-- | This is a simplified version of 'forkL' which returns a sorted tree containing
 -- only those elements which are less than or equal to according to the supplied selector.
--- This function also has the synonym 'genDropGT'.
+-- This function also has the synonym 'dropGT'.
 --
 -- Complexity: O(log n)
-genTakeLE :: (e -> Ordering) -> AVL e -> AVL e
-genTakeLE c avl = let HAVL l _ = genForkL_ L(0) avl -- Tree heights are relative
+takeLE :: (e -> Ordering) -> AVL e -> AVL e
+takeLE c avl = let HAVL l _ = forkL_ L(0) avl -- Tree heights are relative
                   in l
  where
- genForkL_ h  E        = HAVL E h
- genForkL_ h (N l e r) = genForkL__ l DECINT2(h) e r DECINT1(h)
- genForkL_ h (Z l e r) = genForkL__ l DECINT1(h) e r DECINT1(h)
- genForkL_ h (P l e r) = genForkL__ l DECINT1(h) e r DECINT2(h)
- genForkL__ l hl e r hr = case c e of
-                          LT -> genForkL_ hl l
+ forkL_ h  E        = HAVL E h
+ forkL_ h (N l e r) = forkL__ l DECINT2(h) e r DECINT1(h)
+ forkL_ h (Z l e r) = forkL__ l DECINT1(h) e r DECINT1(h)
+ forkL_ h (P l e r) = forkL__ l DECINT1(h) e r DECINT2(h)
+ forkL__ l hl e r hr = case c e of
+                          LT -> forkL_ hl l
                           EQ -> pushRHAVL (HAVL l hl) e
-                          GT -> let havl0 = genForkL_ hr r
+                          GT -> let havl0 = forkL_ hr r
                                 in  spliceHAVL (HAVL l hl) e havl0
 
 
--- | A synonym for 'genTakeLE'.
+-- | A synonym for 'takeLE'.
 --
 -- Complexity: O(log n)
-{-# INLINE genDropGT #-}
-genDropGT :: (e -> Ordering) -> AVL e -> AVL e
-genDropGT = genTakeLE
+dropGT :: (e -> Ordering) -> AVL e -> AVL e
+dropGT = takeLE
+{-# INLINE dropGT #-}
 
--- | This is a simplified version of 'genForkL' which returns a sorted tree containing
+-- | This is a simplified version of 'forkL' which returns a sorted tree containing
 -- only those elements which are greater according to the supplied selector.
--- This function also has the synonym 'genDropLE'.
+-- This function also has the synonym 'dropLE'.
 --
 -- Complexity: O(log n)
-genTakeGT :: (e -> Ordering) -> AVL e -> AVL e
-genTakeGT c avl = let HAVL r _ = genForkL_ L(0) avl -- Tree heights are relative
+takeGT :: (e -> Ordering) -> AVL e -> AVL e
+takeGT c avl = let HAVL r _ = forkL_ L(0) avl -- Tree heights are relative
                   in r
  where
- genForkL_ h  E        = HAVL E h
- genForkL_ h (N l e r) = genForkL__ l DECINT2(h) e r DECINT1(h)
- genForkL_ h (Z l e r) = genForkL__ l DECINT1(h) e r DECINT1(h)
- genForkL_ h (P l e r) = genForkL__ l DECINT1(h) e r DECINT2(h)
- genForkL__ l hl e r hr = case c e of
-                          LT -> let havl1  = genForkL_ hl l
+ forkL_ h  E        = HAVL E h
+ forkL_ h (N l e r) = forkL__ l DECINT2(h) e r DECINT1(h)
+ forkL_ h (Z l e r) = forkL__ l DECINT1(h) e r DECINT1(h)
+ forkL_ h (P l e r) = forkL__ l DECINT1(h) e r DECINT2(h)
+ forkL__ l hl e r hr = case c e of
+                          LT -> let havl1  = forkL_ hl l
                                 in  spliceHAVL havl1 e (HAVL r hr)
                           EQ -> HAVL r hr
-                          GT -> genForkL_ hr r
+                          GT -> forkL_ hr r
 
--- | A synonym for 'genTakeGT'.
+-- | A synonym for 'takeGT'.
 --
 -- Complexity: O(log n)
-{-# INLINE genDropLE #-}
-genDropLE :: (e -> Ordering) -> AVL e -> AVL e
-genDropLE = genTakeGT
+dropLE :: (e -> Ordering) -> AVL e -> AVL e
+dropLE = takeGT
+{-# INLINE dropLE #-}
 
--- | This is a simplified version of 'genForkR' which returns a sorted tree containing
+-- | This is a simplified version of 'forkR' which returns a sorted tree containing
 -- only those elements which are less than according to the supplied selector.
--- This function also has the synonym 'genDropGE'.
+-- This function also has the synonym 'dropGE'.
 --
 -- Complexity: O(log n)
-genTakeLT :: (e -> Ordering) -> AVL e -> AVL e
-genTakeLT c avl = let HAVL l _ = genForkL_ L(0) avl -- Tree heights are relative
+takeLT :: (e -> Ordering) -> AVL e -> AVL e
+takeLT c avl = let HAVL l _ = forkL_ L(0) avl -- Tree heights are relative
                   in l
  where
- genForkL_ h  E        = HAVL E h
- genForkL_ h (N l e r) = genForkL__ l DECINT2(h) e r DECINT1(h)
- genForkL_ h (Z l e r) = genForkL__ l DECINT1(h) e r DECINT1(h)
- genForkL_ h (P l e r) = genForkL__ l DECINT1(h) e r DECINT2(h)
- genForkL__ l hl e r hr = case c e of
-                          LT -> genForkL_ hl l
+ forkL_ h  E        = HAVL E h
+ forkL_ h (N l e r) = forkL__ l DECINT2(h) e r DECINT1(h)
+ forkL_ h (Z l e r) = forkL__ l DECINT1(h) e r DECINT1(h)
+ forkL_ h (P l e r) = forkL__ l DECINT1(h) e r DECINT2(h)
+ forkL__ l hl e r hr = case c e of
+                          LT -> forkL_ hl l
                           EQ -> HAVL l hl
-                          GT -> let havl0 = genForkL_ hr r
+                          GT -> let havl0 = forkL_ hr r
                                 in  spliceHAVL (HAVL l hl) e havl0
 
 
--- | A synonym for 'genTakeLT'.
+-- | A synonym for 'takeLT'.
 --
 -- Complexity: O(log n)
-{-# INLINE genDropGE #-}
-genDropGE :: (e -> Ordering) -> AVL e -> AVL e
-genDropGE = genTakeLT
+dropGE :: (e -> Ordering) -> AVL e -> AVL e
+dropGE = takeLT
+{-# INLINE dropGE #-}
 
--- | This is a simplified version of 'genForkR' which returns a sorted tree containing
+-- | This is a simplified version of 'forkR' which returns a sorted tree containing
 -- only those elements which are greater or equal to according to the supplied selector.
--- This function also has the synonym 'genDropLT'.
+-- This function also has the synonym 'dropLT'.
 --
 -- Complexity: O(log n)
-genTakeGE :: (e -> Ordering) -> AVL e -> AVL e
-genTakeGE c avl = let HAVL r _ = genForkL_ L(0) avl -- Tree heights are relative
-                  in r
+takeGE :: (e -> Ordering) -> AVL e -> AVL e
+takeGE c avl = let HAVL r _ = forkL_ L(0) avl -- Tree heights are relative
+               in r
  where
- genForkL_ h  E        = HAVL E h
- genForkL_ h (N l e r) = genForkL__ l DECINT2(h) e r DECINT1(h)
- genForkL_ h (Z l e r) = genForkL__ l DECINT1(h) e r DECINT1(h)
- genForkL_ h (P l e r) = genForkL__ l DECINT1(h) e r DECINT2(h)
- genForkL__ l hl e r hr = case c e of
-                          LT -> let havl1  = genForkL_ hl l
+ forkL_ h  E        = HAVL E h
+ forkL_ h (N l e r) = forkL__ l DECINT2(h) e r DECINT1(h)
+ forkL_ h (Z l e r) = forkL__ l DECINT1(h) e r DECINT1(h)
+ forkL_ h (P l e r) = forkL__ l DECINT1(h) e r DECINT2(h)
+ forkL__ l hl e r hr = case c e of
+                          LT -> let havl1  = forkL_ hl l
                                 in  spliceHAVL havl1 e (HAVL r hr)
                           EQ -> pushLHAVL e (HAVL r hr)
-                          GT -> genForkL_ hr r
+                          GT -> forkL_ hr r
 
--- | A synonym for 'genTakeGE'.
+-- | A synonym for 'takeGE'.
 --
 -- Complexity: O(log n)
-{-# INLINE genDropLT #-}
-genDropLT :: (e -> Ordering) -> AVL e -> AVL e
-genDropLT = genTakeGE
+dropLT :: (e -> Ordering) -> AVL e -> AVL e
+dropLT = takeGE
+{-# INLINE dropLT #-}
 

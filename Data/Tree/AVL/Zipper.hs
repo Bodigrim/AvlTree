@@ -44,9 +44,9 @@ module Data.Tree.AVL.Zipper
  -- ** Opening
  assertOpenL,assertOpenR,
  tryOpenL,tryOpenR,
- genAssertOpen,genTryOpen,
- genTryOpenGE,genTryOpenLE,
- genOpenEither,
+ assertOpen,tryOpen,
+ tryOpenGE,tryOpenLE,
+ openEither,
 
  -- ** Closing
  close,fillClose,
@@ -92,7 +92,7 @@ module Data.Tree.AVL.Zipper
  BAVL,
 
  -- *** Opening and closing
- genOpenBAVL,closeBAVL,
+ openBAVL,closeBAVL,
 
  -- *** Inspecting status
  fullBAVL,emptyBAVL,tryReadBAVL,readFullBAVL,
@@ -115,7 +115,7 @@ import Data.Tree.AVL.Height(height,addHeight)
 import Data.Tree.AVL.Internals.DelUtils(deletePath,popRN,popRZ,popRP,popLN,popLZ,popLP)
 import Data.Tree.AVL.Internals.HJoin(spliceH,joinH)
 import Data.Tree.AVL.Internals.HPush(pushHL,pushHR)
-import Data.Tree.AVL.BinPath(BinPath(..),genOpenPath,writePath,insertPath,sel,goL,goR)
+import Data.Tree.AVL.BinPath(BinPath(..),openPath,writePath,insertPath,sel,goL,goR)
 
 #ifdef __GLASGOW_HASKELL__
 import GHC.Base
@@ -194,10 +194,10 @@ addSizeLP n (RP p _ _ _) = addSizeLP n p
 -- raises an error if the tree does not contain such an element.
 --
 -- Complexity: O(log n)
-genAssertOpen :: (e -> Ordering) -> AVL e -> ZAVL e
-genAssertOpen c t = op EP L(0) t where -- Relative heights !!
+assertOpen :: (e -> Ordering) -> AVL e -> ZAVL e
+assertOpen c t = op EP L(0) t where -- Relative heights !!
  -- op :: (Path e) -> UINT -> AVL e -> ZAVL e
- op _ _  E        = error "genAssertOpen: No matching element."
+ op _ _  E        = error "assertOpen: No matching element."
  op p h (N l e r) = case c e of
                     LT -> let p_ = LP p e r DECINT1(h) in p_ `seq` op p_ DECINT2(h) l
                     EQ -> ZAVL p l DECINT2(h) e r DECINT1(h)
@@ -216,12 +216,12 @@ genAssertOpen c t = op EP L(0) t where -- Relative heights !!
 --
 -- Note that this operation will still create a zipper path structure on the heap (which
 -- is promptly discarded) if the search fails, and so is potentially inefficient if failure
--- is likely. In cases like this it may be better to use 'genOpenBAVL', test for \"fullness\"
+-- is likely. In cases like this it may be better to use 'openBAVL', test for \"fullness\"
 -- using 'fullBAVL' and then convert to a 'ZAVL' using 'fullBAVLtoZAVL'.
 --
 -- Complexity: O(log n)
-genTryOpen :: (e -> Ordering) -> AVL e -> Maybe (ZAVL e)
-genTryOpen c t = op EP L(0) t where -- Relative heights !!
+tryOpen :: (e -> Ordering) -> AVL e -> Maybe (ZAVL e)
+tryOpen c t = op EP L(0) t where -- Relative heights !!
  -- op :: (Path e) -> UINT -> AVL e -> Maybe (ZAVL e)
  op _ _  E        = Nothing
  op p h (N l e r) = case c e of
@@ -241,8 +241,8 @@ genTryOpen c t = op EP L(0) t where -- Relative heights !!
 -- the supplied selector. This function returns 'Nothing' if the tree does not contain such an element.
 --
 -- Complexity: O(log n)
-genTryOpenGE :: (e -> Ordering) -> AVL e -> Maybe (ZAVL e)
-genTryOpenGE c t = op EP L(0) t where -- Relative heights !!
+tryOpenGE :: (e -> Ordering) -> AVL e -> Maybe (ZAVL e)
+tryOpenGE c t = op EP L(0) t where -- Relative heights !!
  -- op :: (Path e) -> UINT -> AVL e -> ZAVL e
  op p h  E        = backupR p E h where
                      backupR  EP            _ _  = Nothing
@@ -265,8 +265,8 @@ genTryOpenGE c t = op EP L(0) t where -- Relative heights !!
 -- the supplied selector. This function returns _Nothing_ if the tree does not contain such an element.
 --
 -- Complexity: O(log n)
-genTryOpenLE :: (e -> Ordering) -> AVL e -> Maybe (ZAVL e)
-genTryOpenLE c t = op EP L(0) t where -- Relative heights !!
+tryOpenLE :: (e -> Ordering) -> AVL e -> Maybe (ZAVL e)
+tryOpenLE c t = op EP L(0) t where -- Relative heights !!
  -- op :: (Path e) -> UINT -> AVL e -> ZAVL e
  op p h  E        = backupL p E h where
                      backupL  EP            _ _  = Nothing
@@ -376,8 +376,8 @@ openRZ p h l e (P rl re rr) = let p_ = RP p e l DECINT1(h) in p_ `seq` openRP p_
 -- expected element was not found. It's OK to use this function on empty trees.
 --
 -- Complexity: O(log n)
-genOpenEither :: (e -> Ordering) -> AVL e -> Either (PAVL e) (ZAVL e)
-genOpenEither c t = op EP L(0) t where -- Relative heights !!
+openEither :: (e -> Ordering) -> AVL e -> Either (PAVL e) (ZAVL e)
+openEither c t = op EP L(0) t where -- Relative heights !!
  -- op :: (Path e) -> UINT -> AVL e -> Either (PAVL e) (ZAVL e)
  op p h  E        = Left $! PAVL p h
  op p h (N l e r) = case c e of
@@ -784,10 +784,10 @@ data BAVL e = BAVL (AVL e) (BinPath e)
 -- Returns a \"full\" 'BAVL' if a matching element was found, otherwise returns an \"empty\" 'BAVL'.
 --
 -- Complexity: O(log n)
-genOpenBAVL :: (e -> Ordering) -> AVL e -> BAVL e
-{-# INLINE genOpenBAVL #-}
-genOpenBAVL c t = bp `seq` BAVL t bp
- where bp = genOpenPath c t
+openBAVL :: (e -> Ordering) -> AVL e -> BAVL e
+{-# INLINE openBAVL #-}
+openBAVL c t = bp `seq` BAVL t bp
+ where bp = openPath c t
 
 -- | Returns the original tree, extracted from the 'BAVL'. Typically you will not need this, as
 -- the original tree will still be in scope in most cases.

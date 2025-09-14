@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Tree.AVL
--- Copyright   :  (c) Adrian Hey 2004,2005
+-- Copyright   :  (c) Adrian Hey 2004,2008
 -- License     :  BSD3
 --
 -- Maintainer  :  http://homepages.nildram.co.uk/~ahey/em.png
@@ -36,17 +36,21 @@
 -----------------------------------------------------------------------------
 module Data.Tree.AVL
 (module Data.Tree.AVL.Types,
- module Data.Tree.AVL.Size,
- module Data.Tree.AVL.Height,
  module Data.Tree.AVL.Read,
  module Data.Tree.AVL.Write,
  module Data.Tree.AVL.Push,
  module Data.Tree.AVL.Delete,
- module Data.Tree.AVL.List,
- module Data.Tree.AVL.Join,
- module Data.Tree.AVL.Split,
  module Data.Tree.AVL.Set,
  module Data.Tree.AVL.Zipper,
+ module Data.Tree.AVL.Join,
+ module Data.Tree.AVL.List,
+ module Data.Tree.AVL.Split,
+ module Data.Tree.AVL.Size,
+ module Data.Tree.AVL.Height,
+
+ -- * Low level Binary Path utilities.
+ -- | This is the low level (unsafe) API used by the 'BAVL' type.
+ BinPath(..),findFullPath,findEmptyPath,openPath,openPathWith,readPath,writePath,insertPath,deletePath,
 
  -- * Correctness checking.
  isBalanced,isSorted,isSortedOK,
@@ -54,13 +58,10 @@ module Data.Tree.AVL
  -- * Tree parameter utilities.
  minElements,maxElements,
 
- -- * Low level Binary Path utilities.
- -- | This is the low level (unsafe) API used by the 'BAVL' type.
- BinPath(..),genFindPath,genOpenPath,genOpenPathWith,readPath,writePath,insertPath,deletePath,
-
+ module Data.Tree.AVL.Deprecated,
 ) where
 
-import Prelude -- so haddock finds the symbols there
+import Prelude hiding (map) -- so haddock finds the symbols there
 
 import Data.Tree.AVL.Types hiding (E,N,P,Z)
 import Data.Tree.AVL.Size
@@ -75,14 +76,13 @@ import Data.Tree.AVL.Split
 import Data.Tree.AVL.Set
 import Data.Tree.AVL.Zipper
 import Data.Tree.AVL.Test.Utils(isBalanced,isSorted,isSortedOK,minElements,maxElements)
-import Data.Tree.AVL.BinPath(BinPath(..),genFindPath,genOpenPath,genOpenPathWith,readPath,writePath,insertPath)
+import Data.Tree.AVL.BinPath(BinPath(..),findFullPath,findEmptyPath,openPath,openPathWith,readPath,writePath,insertPath)
 import Data.Tree.AVL.Internals.DelUtils(deletePath)
-
+import Data.Tree.AVL.Deprecated
 #if __GLASGOW_HASKELL__ > 604
 import Data.Traversable
-instance Traversable AVL where
-    traverse = traverseAVL
 #endif
+
 
 {- These are now derived since switch to structural equality!
 -- | Show is based on showing the list produced by 'asListL'. This definition has been placed here
@@ -101,4 +101,9 @@ instance Read e => Read (AVL e) where
 -- | AVL trees are an instance of 'Functor'. This definition has been placed here
 -- to avoid introducing cyclic dependency between Types.hs and List.hs
 instance Functor AVL where
- fmap = mapAVL           -- The lazy version.
+ fmap = map           -- The lazy version.
+
+#if __GLASGOW_HASKELL__ > 604
+instance Traversable AVL where
+    traverse = traverseAVL
+#endif

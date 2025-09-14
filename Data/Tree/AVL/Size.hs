@@ -13,7 +13,12 @@
 -----------------------------------------------------------------------------
 module Data.Tree.AVL.Size
         (-- * AVL tree size utilities.
-         size,addSize,fastAddSize,clipSize
+         size,addSize,clipSize,
+
+#ifdef __GLASGOW_HASKELL__
+         -- ** (GHC Only)
+         addSize#,size#,
+#endif
         ) where
 
 import Data.Tree.AVL.Types(AVL(..))
@@ -26,22 +31,36 @@ import GHC.Base
 #include "h98defs.h"
 #endif
 
--- | Counts the total number of elements in an AVL tree.
---
--- @'size' = 'addSize' 0@
---
--- Complexity: O(n)
-{-# INLINE size #-}
-size :: AVL e -> Int
-size = addSize 0
+#ifdef __GLASGOW_HASKELL__
+import GHC.Base
+#include "ghcdefs.h"
 
--- | Adds the size of a tree to the first argument.
--- This is just a convenience wrapper for 'fastAddSize'.
---
--- Complexity: O(n)
-{-# INLINE addSize #-}
+-- | A convenience wrapper for 'addSize#'.
+size :: AVL e -> Int
+size t = ASINT(addSize# L(0) t)
+{-# INLINE size #-}
+
+-- | A convenience wrapper for 'addSize#'.
+size# :: AVL e -> UINT
+size# t = addSize# L(0) t
+{-# INLINE size# #-}
+
+-- | See 'addSize#'.
 addSize :: Int -> AVL e -> Int
-addSize ASINT(n) t = ASINT(fastAddSize n t)
+addSize ASINT(n) t = ASINT(addSize# n t)
+{-# INLINE addSize #-}
+
+#define AddSize addSize#
+#else
+#include "h98defs.h"
+
+-- | A convenience wrapper for 'addSize'.
+size :: AVL e -> Int
+size t = addSize 0 t
+{-# INLINE size #-}
+
+#define AddSize addSize
+#endif
 
 {-----------------------------------------
 Notes for fast size calculation.
@@ -55,26 +74,26 @@ Notes for fast size calculation.
       (3,P l _ _) -> 2 + size 2 l -- Must be (P  l        _ (Z E _ E))
 ------------------------------------------}
 
--- | Fast algorithm to calculate size. This avoids visiting about 50% of tree nodes
+-- | Fast algorithm to add the size of a tree to the first argument. This avoids visiting about 50% of tree nodes
 -- by using fact that trees with small heights can only have particular shapes.
 -- So it's still O(n), but with substantial saving in constant factors.
 --
 -- Complexity: O(n)
-fastAddSize :: UINT -> AVL e -> UINT
-fastAddSize n E         = n
-fastAddSize n (N l _ r) = case addHeight L(2) l of
-                          L(2) -> INCINT2(n)
-                          L(3) -> fas2 INCINT2(n) r
-                          h    -> fasNP n h l r
-fastAddSize n (Z l _ r) = case addHeight L(1) l of
-                          L(1) -> INCINT1(n)
-                          L(2) -> INCINT3(n)
-                          L(3) -> fas2 (fas2 INCINT1(n) l) r
-                          h    -> fasZ n h l r
-fastAddSize n (P l _ r) = case addHeight L(2) r of
-                          L(2) -> INCINT2(n)
-                          L(3) -> fas2 INCINT2(n) l
-                          h    -> fasNP n h r l
+AddSize :: UINT -> AVL e -> UINT
+AddSize n E         = n
+AddSize n (N l _ r) = case addHeight L(2) l of
+                      L(2) -> INCINT2(n)
+                      L(3) -> fas2 INCINT2(n) r
+                      h    -> fasNP n h l r
+AddSize n (Z l _ r) = case addHeight L(1) l of
+                      L(1) -> INCINT1(n)
+                      L(2) -> INCINT3(n)
+                      L(3) -> fas2 (fas2 INCINT1(n) l) r
+                      h    -> fasZ n h l r
+AddSize n (P l _ r) = case addHeight L(2) r of
+                      L(2) -> INCINT2(n)
+                      L(3) -> fas2 INCINT2(n) l
+                      h    -> fasNP n h r l
 -- Parent Height (h) >= 4 !!
 fasNP,fasZ :: UINT -> UINT -> AVL e -> AVL e -> UINT
 fasNP n h l r = fasG3 (fasG2 INCINT1(n) DECINT2(h) l) DECINT1(h) r
@@ -92,13 +111,13 @@ fasG3 n L(3) (P l _ _) = fas2 INCINT2(n) l
 fasG3 n h    (N l _ r) = fasNP n h l r -- h>=4
 fasG3 n h    (Z l _ r) = fasZ  n h l r -- h>=4
 fasG3 n h    (P l _ r) = fasNP n h r l -- h>=4
-fasG3 _ _     E        = error "fastAddSize: Bad Tree." -- impossible
+fasG3 _ _     E        = error "AddSize: Bad Tree." -- impossible
 -- h=2 !!
 fas2 :: UINT -> AVL e -> UINT
 fas2 n (N _ _ _) = INCINT2(n)
 fas2 n (Z _ _ _) = INCINT3(n)
 fas2 n (P _ _ _) = INCINT2(n)
-fas2 _  E        = error "fastAddSize: Bad Tree." -- impossible
+fas2 _  E        = error "AddSize: Bad Tree." -- impossible
 {-# INLINE fas2 #-}
 -----------------------------------------------------------------------
 ----------------------- fastAddSize Ends Here -------------------------
@@ -106,7 +125,7 @@ fas2 _  E        = error "fastAddSize: Bad Tree." -- impossible
 
 -- | Returns the exact tree size in the form @('Just' n)@ if this is less than or
 -- equal to the input clip value. Returns @'Nothing'@ of the size is greater than
--- the clip value. This function exploits the same optimisation as 'fastAddSize'.
+-- the clip value. This function exploits the same optimisation as 'addSize'.
 --
 -- Complexity: O(min n c) where n is tree size and c is clip value.
 clipSize ::  Int -> AVL e -> Maybe Int

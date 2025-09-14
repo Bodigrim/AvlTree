@@ -16,7 +16,7 @@ module Data.Tree.AVL.Delete
  delL,delR,assertDelL,assertDelR,tryDelL,tryDelR,
 
  -- ** Deleting from /sorted/ trees
- genDel,genDelFast,genDelIf,genDelMaybe,
+ delete,deleteFast,deleteIf,deleteMaybe,
 
  -- * \"Popping\" elements from AVL trees
  -- | \"Popping\" means reading and deleting a tree element in a single operation.
@@ -25,14 +25,14 @@ module Data.Tree.AVL.Delete
  assertPopL,assertPopR,tryPopL,tryPopR,
 
  -- ** Popping from /sorted/ trees
- genAssertPop,genTryPop,genAssertPopMaybe,genTryPopMaybe,genAssertPopIf,genTryPopIf,
+ assertPop,tryPop,assertPopMaybe,tryPopMaybe,assertPopIf,tryPopIf,
 ) where
 
 import Prelude -- so haddock finds the symbols there
 
 import Data.COrdering
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.BinPath(BinPath(..),genFindPath,genOpenPathWith,writePath)
+import Data.Tree.AVL.BinPath(BinPath(..),findFullPath,openPathWith,writePath)
 
 import Data.Tree.AVL.Internals.DelUtils
          (-- Deleting Utilities
@@ -160,19 +160,18 @@ tryPopR (P l e r) = Just $! case popRP l e r of UBT2(t,v) -> (t,v)
 -- If a matching element is not found then this function returns the original tree.
 --
 -- Complexity: O(log n)
-genDel :: (e -> Ordering) -> AVL e -> AVL e
-genDel c t = let p = genFindPath c t
-             in case COMPAREUINT p L(0) of
-                LT -> t                -- Not found, p<0
-                _  -> deletePath p t   -- Found, so delete
+delete :: (e -> Ordering) -> AVL e -> AVL e
+delete c t = case findFullPath c t of
+             L(-1) -> t                -- Not found, p<0
+             p     -> deletePath p t   -- Found, so delete
 
 -- | This version only deletes the element if the supplied selector returns @('Eq' 'True')@.
 -- If it returns @('Eq' 'False')@ or if no matching element is found then this function returns
 -- the original tree.
 --
 -- Complexity: O(log n)
-genDelIf :: (e -> COrdering Bool) -> AVL e -> AVL e
-genDelIf c t = case genOpenPathWith c t of
+deleteIf :: (e -> COrdering Bool) -> AVL e -> AVL e
+deleteIf c t = case openPathWith c t of
                FullBP p True -> deletePath p t
                _             -> t
 
@@ -181,24 +180,24 @@ genDelIf c t = case genOpenPathWith c t of
 -- If no matching element is found then this function returns the original tree.
 --
 -- Complexity: O(log n)
-genDelMaybe :: (e -> COrdering (Maybe e)) -> AVL e -> AVL e
-genDelMaybe c t = case genOpenPathWith c t of
+deleteMaybe :: (e -> COrdering (Maybe e)) -> AVL e -> AVL e
+deleteMaybe c t = case openPathWith c t of
                   FullBP p Nothing  -> deletePath p t
                   FullBP p (Just e) -> writePath p e t
                   _                 -> t
 
--- | Functionally identical to 'genDel', but returns an identical tree (one with all the nodes on
+-- | Functionally identical to 'delete', but returns an identical tree (one with all the nodes on
 -- the path duplicated) if the search fails. This should probably only be used if you know the
 -- search will succeed.
 --
 -- Complexity: O(log n)
-genDelFast :: (e -> Ordering) -> AVL e -> AVL e
--- This was the old genDel so it's been tested OK, but as a different name.
-genDelFast c = genDel' where
- genDel'  E        = E
- genDel' (N l e r) = delN l e r
- genDel' (Z l e r) = delZ l e r
- genDel' (P l e r) = delP l e r
+deleteFast :: (e -> Ordering) -> AVL e -> AVL e
+-- This was the old delete so it's been tested OK, but as a different name.
+deleteFast c = delete' where
+ delete'  E        = E
+ delete' (N l e r) = delN l e r
+ delete' (Z l e r) = delZ l e r
+ delete' (P l e r) = delP l e r
 
  ----------------------------- LEVEL 1 ---------------------------------
  --                       delN, delZ, delP                            --
@@ -317,7 +316,7 @@ genDelFast c = genDel' where
                           EQ -> chkRP  l e (subP  rl    rr)
                           GT -> chkRP  l e (delPR rl re rr)
 -----------------------------------------------------------------------
-------------------------- genDelFast Ends Here ------------------------
+------------------------- deleteFast Ends Here ------------------------
 -----------------------------------------------------------------------
 
 -- | General purpose function for popping elements from a sorted AVL tree.
@@ -325,9 +324,9 @@ genDelFast c = genDel' where
 -- by this function consists of the popped value and the modified tree.
 --
 -- Complexity: O(log n)
-genAssertPop :: (e -> COrdering a) -> AVL e -> (a,AVL e)
-genAssertPop c = genPop_ where
- genPop_  E        = error "genAssertPop: element not found."
+assertPop :: (e -> COrdering a) -> AVL e -> (a,AVL e)
+assertPop c = genPop_ where
+ genPop_  E        = error "assertPop: element not found."
  genPop_ (N l e r) = case popN l e r of UBT2(v,t) -> (v,t)
  genPop_ (Z l e r) = case popZ l e r of UBT2(v,t) -> (v,t)
  genPop_ (P l e r) = case popP l e r of UBT2(v,t) -> (v,t)
@@ -360,7 +359,7 @@ genAssertPop c = genPop_ where
  -----------------------------------------------------------------------
 
  -- Pop from the left subtree of (N l e r)
- popNL  E           _ _ = error "genAssertPop: element not found."     -- Left sub-tree is empty
+ popNL  E           _ _ = error "assertPop: element not found."     -- Left sub-tree is empty
  popNL (N ll le lr) e r = case c le of
                           Lt   -> case popNL ll le lr of
                                   UBT2(a,l_) -> let t = chkLN l_ e r in t `seq` UBT2(a,t)
@@ -400,7 +399,7 @@ genAssertPop c = genPop_ where
                                   UBT2(a,r_) -> let t = chkRN l e r_ in t `seq` UBT2(a,t)
 
  -- Pop from the left subtree of (Z l e r)
- popZL  E           _ _ = error "genAssertPop: element not found."  -- Left sub-tree is empty
+ popZL  E           _ _ = error "assertPop: element not found."  -- Left sub-tree is empty
  popZL (N ll le lr) e r = case c le of
                           Lt   -> case popNL ll le lr of
                                   UBT2(a,l_) -> let t = chkLZ l_ e r in t `seq` UBT2(a,t)
@@ -420,7 +419,7 @@ genAssertPop c = genPop_ where
                                   UBT2(a,l_) -> let t = chkLZ l_ e r in t `seq` UBT2(a,t)
 
  -- Pop from the right subtree of (Z l e r)
- popZR _ _  E           = error "genAssertPop: element not found."    -- Right sub-tree is empty
+ popZR _ _  E           = error "assertPop: element not found."    -- Right sub-tree is empty
  popZR l e (N rl re rr) = case c re of
                           Lt   -> case popNL rl re rr of
                                   UBT2(a,r_) -> let t = chkRZ l e r_ in t `seq` UBT2(a,t)
@@ -460,7 +459,7 @@ genAssertPop c = genPop_ where
                                   UBT2(a,l_) -> let t = chkLP l_ e r in t `seq` UBT2(a,t)
 
  -- Pop from the right subtree of (P l e r)
- popPR _ _  E           = error "genAssertPop: element not found."                  -- Right sub-tree is empty
+ popPR _ _  E           = error "assertPop: element not found."                  -- Right sub-tree is empty
  popPR l e (N rl re rr) = case c re of
                           Lt   -> case popNL rl re rr of
                                   UBT2(a,r_) -> let t = chkRP l e r_ in t `seq` UBT2(a,t)
@@ -479,14 +478,14 @@ genAssertPop c = genPop_ where
                           Gt   -> case popPR rl re rr of
                                   UBT2(a,r_) -> let t = chkRP l e r_ in t `seq` UBT2(a,t)
 -----------------------------------------------------------------------
------------------------- genAssertPop Ends Here -----------------------
+------------------------ assertPop Ends Here -----------------------
 -----------------------------------------------------------------------
 
 -- | Similar to 'genPop', but this function returns 'Nothing' if the search fails.
 --
 -- Complexity: O(log n)
-genTryPop :: (e -> COrdering a) -> AVL e -> Maybe (a,AVL e)
-genTryPop c t = case genOpenPathWith c t of
+tryPop :: (e -> COrdering a) -> AVL e -> Maybe (a,AVL e)
+tryPop c t = case openPathWith c t of
                 FullBP pth a -> let t' = deletePath pth t in t' `seq` Just (a,t')
                 _            -> Nothing
 
@@ -496,38 +495,38 @@ genTryPop c t = case genOpenPathWith c t of
 -- This function raises an error if the search fails.
 --
 -- Complexity: O(log n)
-genAssertPopMaybe :: (e -> COrdering (a,Maybe e)) -> AVL e -> (a,AVL e)
-genAssertPopMaybe c t = case genOpenPathWith c t of
+assertPopMaybe :: (e -> COrdering (a,Maybe e)) -> AVL e -> (a,AVL e)
+assertPopMaybe c t = case openPathWith c t of
                       FullBP pth (a,Just e ) -> let t' = writePath  pth e t in t' `seq` (a,t')
                       FullBP pth (a,Nothing) -> let t' = deletePath pth   t in t' `seq` (a,t')
-                      _                      -> error "genAssertPopMaybe: element not found."
+                      _                      -> error "assertPopMaybe: element not found."
 
--- | Similar to 'genAssertPopMaybe', but returns 'Nothing' if the search fails.
+-- | Similar to 'assertPopMaybe', but returns 'Nothing' if the search fails.
 --
 -- Complexity: O(log n)
-genTryPopMaybe :: (e -> COrdering (a,Maybe e)) -> AVL e -> Maybe (a,AVL e)
-genTryPopMaybe c t = case genOpenPathWith c t of
+tryPopMaybe :: (e -> COrdering (a,Maybe e)) -> AVL e -> Maybe (a,AVL e)
+tryPopMaybe c t = case openPathWith c t of
                      FullBP pth (a,Just e ) -> let t' = writePath  pth e t in t' `seq` Just (a,t')
                      FullBP pth (a,Nothing) -> let t' = deletePath pth   t in t' `seq` Just (a,t')
                      _                      -> Nothing
 
 
--- | A simpler version of 'genAssertPopMaybe'. The corresponding element is deleted if the second value
+-- | A simpler version of 'assertPopMaybe'. The corresponding element is deleted if the second value
 -- returned by the selector is 'True'. If it\'s 'False', the original tree is returned.
 -- This function raises an error if the search fails.
 --
 -- Complexity: O(log n)
-genAssertPopIf :: (e -> COrdering (a,Bool)) -> AVL e -> (a,AVL e)
-genAssertPopIf c t = case genOpenPathWith c t of
+assertPopIf :: (e -> COrdering (a,Bool)) -> AVL e -> (a,AVL e)
+assertPopIf c t = case openPathWith c t of
                      FullBP _   (a,False) -> (a,t)
                      FullBP pth (a,True ) -> let t' = deletePath pth t in t' `seq` (a,t')
-                     _                    -> error "genAssertPopIf: element not found."
+                     _                    -> error "assertPopIf: element not found."
 
 -- | Similar to 'genPopIf', but returns 'Nothing' if the search fails.
 --
 -- Complexity: O(log n)
-genTryPopIf :: (e -> COrdering (a,Bool)) -> AVL e -> Maybe (a,AVL e)
-genTryPopIf c t = case genOpenPathWith c t of
+tryPopIf :: (e -> COrdering (a,Bool)) -> AVL e -> Maybe (a,AVL e)
+tryPopIf c t = case openPathWith c t of
                   FullBP _   (a,False) -> Just (a,t)
                   FullBP pth (a,True ) -> let t' = deletePath pth t in t' `seq` Just (a,t')
                   _                    -> Nothing

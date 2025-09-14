@@ -19,14 +19,14 @@ module Data.Tree.AVL.Write
  writeL,tryWriteL,writeR,tryWriteR,
 
  -- ** Writing to /sorted/ trees
- genWrite,genWriteFast,genTryWrite,genWriteMaybe,genTryWriteMaybe
+ write,writeFast,tryWrite,writeMaybe,tryWriteMaybe
 ) where
 
 import Prelude -- so haddock finds the symbols there
 
 import Data.COrdering
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.BinPath(BinPath(..),genOpenPathWith,writePath)
+import Data.Tree.AVL.BinPath(BinPath(..),openPathWith,writePath)
 
 ---------------------------------------------------------------------------
 --                       writeL, tryWriteL                               --
@@ -137,61 +137,61 @@ writeRP l e (P rl re rr) e' = let r' = writeRP rl re rr e' in r' `seq` P l e r'
 -- constructor returned by the selector. If the search fails this function returns the original tree.
 --
 -- Complexity: O(log n)
-genWrite :: (e -> COrdering e) -> AVL e -> AVL e
-genWrite c t = case genOpenPathWith c t of
-               FullBP pth e -> writePath pth e t
-               _            -> t
+write :: (e -> COrdering e) -> AVL e -> AVL e
+write c t = case openPathWith c t of
+            FullBP pth e -> writePath pth e t
+            _            -> t
 
--- | Functionally identical to 'genWrite', but returns an identical tree (one with all the nodes on
+-- | Functionally identical to 'write', but returns an identical tree (one with all the nodes on
 -- the path duplicated) if the search fails. This should probably only be used if you know the
 -- search will succeed and will return an element which is different from that already present.
 --
 -- Complexity: O(log n)
-genWriteFast :: (e -> COrdering e) -> AVL e -> AVL e
-genWriteFast c = write where
- write   E        = E
- write  (N l e r) = case c e of
-                    Lt   -> let l' = write l in l' `seq` N l' e r
-                    Eq v -> N l v r
-                    Gt   -> let r' = write r in r' `seq` N l  e r'
- write  (Z l e r) = case c e of
-                    Lt   -> let l' = write l in l' `seq` Z l' e r
-                    Eq v -> Z l v r
-                    Gt   -> let r' = write r in r' `seq` Z l  e r'
- write  (P l e r) = case c e of
-                    Lt   -> let l' = write l in l' `seq` P l' e r
-                    Eq v -> P l v r
-                    Gt   -> let r' = write r in r' `seq` P l  e r'
+writeFast :: (e -> COrdering e) -> AVL e -> AVL e
+writeFast c = w where
+ w   E        = E
+ w  (N l e r) = case c e of
+                Lt   -> let l' = w l in l' `seq` N l' e r
+                Eq v -> N l v r
+                Gt   -> let r' = w r in r' `seq` N l  e r'
+ w  (Z l e r) = case c e of
+                Lt   -> let l' = w l in l' `seq` Z l' e r
+                Eq v -> Z l v r
+                Gt   -> let r' = w r in r' `seq` Z l  e r'
+ w  (P l e r) = case c e of
+                Lt   -> let l' = w l in l' `seq` P l' e r
+                Eq v -> P l v r
+                Gt   -> let r' = w r in r' `seq` P l  e r'
 
 -- | A general purpose function to perform a search of a tree, using the supplied selector.
 -- The found element is replaced by the value (@e@) of the @('Eq' e)@ constructor returned by
 -- the selector. This function returns 'Nothing' if the search failed.
 --
 -- Complexity: O(log n)
-genTryWrite :: (e -> COrdering e) -> AVL e -> Maybe (AVL e)
-genTryWrite c t = case genOpenPathWith c t of
-                  FullBP pth e -> Just $! writePath pth e t
-                  _            -> Nothing
+tryWrite :: (e -> COrdering e) -> AVL e -> Maybe (AVL e)
+tryWrite c t = case openPathWith c t of
+               FullBP pth e -> Just $! writePath pth e t
+               _            -> Nothing
 
--- | Similar to 'genWrite', but also returns the original tree if the search succeeds but
+-- | Similar to 'write', but also returns the original tree if the search succeeds but
 -- the selector returns @('Eq' 'Nothing')@. (This version is intended to help reduce heap burn
 -- rate if it\'s likely that no modification of the value is needed.)
 --
 -- Complexity: O(log n)
-genWriteMaybe :: (e -> COrdering (Maybe e)) -> AVL e -> AVL e
-genWriteMaybe c t = case genOpenPathWith c t of
-                    FullBP pth (Just e) -> writePath pth e t
-                    _                   -> t
+writeMaybe :: (e -> COrdering (Maybe e)) -> AVL e -> AVL e
+writeMaybe c t = case openPathWith c t of
+                 FullBP pth (Just e) -> writePath pth e t
+                 _                   -> t
 
--- | Similar to 'genTryWrite', but also returns the original tree if the search succeeds but
+-- | Similar to 'tryWrite', but also returns the original tree if the search succeeds but
 -- the selector returns @('Eq' 'Nothing')@. (This version is intended to help reduce heap burn
 -- rate if it\'s likely that no modification of the value is needed.)
 --
 -- Complexity: O(log n)
-genTryWriteMaybe :: (e -> COrdering (Maybe e)) -> AVL e -> Maybe (AVL e)
-genTryWriteMaybe c t = case genOpenPathWith c t of
-                       FullBP pth (Just e) -> Just $! writePath pth e t
-                       FullBP _   Nothing  -> Just t
-                       _                   -> Nothing
+tryWriteMaybe :: (e -> COrdering (Maybe e)) -> AVL e -> Maybe (AVL e)
+tryWriteMaybe c t = case openPathWith c t of
+                    FullBP pth (Just e) -> Just $! writePath pth e t
+                    FullBP _   Nothing  -> Just t
+                    _                   -> Nothing
 
 

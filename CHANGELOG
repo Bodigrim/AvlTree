@@ -38,3 +38,10 @@ No code changes, just reclaiming ownership and bumping version No.
 4.1
 ---
 * Added missing strictness to genVenn,genVennMaybe
+
+4.2
+---
+* A lot of function renaming (old names still available but deprecated).
+* Gather all deprecations in 1 new module: Data.Tree.AVL.Deprecated
+* Added findEmptyPath,nub,nubBy
+

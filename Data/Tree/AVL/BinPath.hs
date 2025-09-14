@@ -18,7 +18,7 @@
 -- functions.
 -----------------------------------------------------------------------------
 module Data.Tree.AVL.BinPath
-        (BinPath(..),genFindPath,genOpenPath,genOpenPathWith,readPath,writePath,insertPath,
+        (BinPath(..),findFullPath,findEmptyPath,openPath,openPathWith,readPath,writePath,insertPath,
         --  These are used by deletePath, which currently resides in Data.Tree.AVL.Internals.DelUtils
         sel,goL,goR,
         ) where
@@ -126,9 +126,9 @@ See also: pathTree in Data.Tree.AVL.Test.Utils for recursive implementation of t
 -- | Find the path to a AVL tree element, returns -1 (invalid path) if element not found
 --
 -- Complexity: O(log n)
-genFindPath :: (e -> Ordering) -> AVL e -> UINT
+findFullPath :: (e -> Ordering) -> AVL e -> UINT
 -- ?? What about strictness if UINT is boxed (i.e. non-ghc)?
-genFindPath c t = find L(1) L(0) t where
+findFullPath c t = find L(1) L(0) t where
  find  _ _  E        = L(-1)
  find  d i (N l e r) = find' d i l e r
  find  d i (Z l e r) = find' d i l e r
@@ -138,11 +138,26 @@ genFindPath c t = find L(1) L(0) t where
                        EQ    -> i
                        GT    -> let d_ = ADDINT(d,d) in find d_ ADDINT(i,d_) r -- d_ = 2d
 
+-- | Find the path to a non-existant AVL tree element, returns -1 (invalid path) if element is found
+--
+-- Complexity: O(log n)
+findEmptyPath :: (e -> Ordering) -> AVL e -> UINT
+-- ?? What about strictness if UINT is boxed (i.e. non-ghc)?
+findEmptyPath c t = find L(1) L(0) t where
+ find  _ i  E        = i
+ find  d i (N l e r) = find' d i l e r
+ find  d i (Z l e r) = find' d i l e r
+ find  d i (P l e r) = find' d i l e r
+ find' d i    l e r  = case c e of
+                       LT    -> let d_ = ADDINT(d,d) in find d_ ADDINT(i,d ) l
+                       EQ    -> L(-1)
+                       GT    -> let d_ = ADDINT(d,d) in find d_ ADDINT(i,d_) r -- d_ = 2d
+
 -- | Get the BinPath of an element using the supplied selector.
 --
 -- Complexity: O(log n)
-genOpenPath :: (e -> Ordering) -> AVL e -> BinPath e
-genOpenPath c t = find L(1) L(0) t where
+openPath :: (e -> Ordering) -> AVL e -> BinPath e
+openPath c t = find L(1) L(0) t where
  find  _ i  E        = EmptyBP i
  find  d i (N l e r) = find' d i l e r
  find  d i (Z l e r) = find' d i l e r
@@ -155,8 +170,8 @@ genOpenPath c t = find L(1) L(0) t where
 -- | Get the BinPath of an element using the supplied (combining) selector.
 --
 -- Complexity: O(log n)
-genOpenPathWith :: (e -> COrdering a) -> AVL e -> BinPath a
-genOpenPathWith c t = find L(1) L(0) t where
+openPathWith :: (e -> COrdering a) -> AVL e -> BinPath a
+openPathWith c t = find L(1) L(0) t where
  find  _ i  E        = EmptyBP i
  find  d i (N l e r) = find' d i l e r
  find  d i (Z l e r) = find' d i l e r

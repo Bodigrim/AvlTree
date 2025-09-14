@@ -16,14 +16,14 @@ module Data.Tree.AVL.Push
  pushL,pushR,
 
  -- ** Pushing on /sorted/ AVL trees
- genPush,genPush',genPushMaybe,genPushMaybe',
+ push,push',pushMaybe,pushMaybe',
 ) where
 
 import Prelude -- so haddock finds the symbols there
 
 import Data.COrdering
 import Data.Tree.AVL.Types(AVL(..))
-import Data.Tree.AVL.BinPath(BinPath(..),genOpenPathWith,writePath,insertPath)
+import Data.Tree.AVL.BinPath(BinPath(..),openPathWith,writePath,insertPath)
 
 {------------------------------------------------------------------------------------------------------------------------------
  -------------------------------------- Notes about Insertion and Rebalancing -------------------------------------------------
@@ -167,11 +167,11 @@ Rebalancing: CASE RL(2)
 --
 -- Note also that this function is /non-strict/ in it\'s second argument (the default value which
 -- is inserted if the search fails or is discarded if the search succeeds). If you want
--- to force evaluation, but only if it\'s actually incorprated in the tree, then use 'genPush''
+-- to force evaluation, but only if it\'s actually incorprated in the tree, then use 'push''
 --
 -- Complexity: O(log n)
-genPush :: (e -> COrdering e) -> e -> AVL e -> AVL e
-genPush c e0 = put where -- there now follows a huge collection of functions requiring
+push :: (e -> COrdering e) -> e -> AVL e -> AVL e
+push c e0 = put where -- there now follows a huge collection of functions requiring
                          -- pattern matching from hell in which c and e0 are free variables
 -- This may look longwinded, it's been done this way to..
 --  * Avoid doing case analysis on the same node more than once.
@@ -220,7 +220,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                           in l' `seq` N l' e r
  putNL (Z ll le lr) e r = let l' = putZ ll le lr      -- L subtree BF= 0, so need to look for changes
                           in case l' of
-                          E       -> error "genPush: Bug0" -- impossible
+                          E       -> error "push: Bug0" -- impossible
                           Z _ _ _ -> N l' e r         -- L subtree BF:0-> 0, H:h->h  , parent BF:-1->-1
                           _       -> Z l' e r         -- L subtree BF:0->+/-1, H:h->h+1, parent BF:-1-> 0
 
@@ -233,7 +233,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                           in l' `seq` Z l' e r
  putZL (Z ll le lr) e r = let l' = putZ ll le lr      -- L subtree BF= 0, so need to look for changes
                           in case l' of
-                          E       -> error "genPush: Bug1" -- impossible
+                          E       -> error "push: Bug1" -- impossible
                           Z _ _ _ -> Z l' e r         -- L subtree BF: 0-> 0, H:h->h  , parent BF: 0-> 0
                           _       -> P l' e r         -- L subtree BF: 0->+/-1, H:h->h+1, parent BF: 0->+1
 
@@ -246,7 +246,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                           in r' `seq` Z l e r'
  putZR l e (Z rl re rr) = let r' = putZ rl re rr      -- R subtree BF= 0, so need to look for changes
                           in case r' of
-                          E       -> error "genPush: Bug2" -- impossible
+                          E       -> error "push: Bug2" -- impossible
                           Z _ _ _ -> Z l e r'         -- R subtree BF: 0-> 0, H:h->h  , parent BF: 0-> 0
                           _       -> N l e r'         -- R subtree BF: 0->+/-1, H:h->h+1, parent BF: 0->-1
 
@@ -259,7 +259,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                           in r' `seq` P l e r'
  putPR l e (Z rl re rr) = let r' = putZ rl re rr      -- R subtree BF= 0, so need to look for changes
                           in case r' of
-                          E       -> error "genPush: Bug3" -- impossible
+                          E       -> error "push: Bug3" -- impossible
                           Z _ _ _ -> P l e r'         -- R subtree BF:0-> 0, H:h->h  , parent BF:+1->+1
                           _       -> Z l e r'         -- R subtree BF:0->+/-1, H:h->h+1, parent BF:+1-> 0
 
@@ -267,7 +267,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
 
  -- (putNR l e r): Put in R subtree of (N l e r), BF=-1 , (never returns P)
  {-# INLINE putNR #-}
- putNR _ _ E            = error "genPush: Bug4"               -- impossible if BF=-1
+ putNR _ _ E            = error "push: Bug4"               -- impossible if BF=-1
  putNR l e (N rl re rr) = let r' = putN rl re rr              -- R subtree BF<>0, H:h->h, parent BF:-1->-1
                           in r' `seq` N l e r'
  putNR l e (P rl re rr) = let r' = putP rl re rr              -- R subtree BF<>0, H:h->h, parent BF:-1->-1
@@ -279,7 +279,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
 
  -- (putPL l e r): Put in L subtree of (P l e r), BF=+1 , (never returns N)
  {-# INLINE putPL #-}
- putPL  E           _ _ = error "genPush: Bug5"               -- impossible if BF=+1
+ putPL  E           _ _ = error "push: Bug5"               -- impossible if BF=+1
  putPL (N ll le lr) e r = let l' = putN ll le lr              -- L subtree BF<>0, H:h->h, parent BF:+1->+1
                           in l' `seq` P l' e r
  putPL (P ll le lr) e r = let l' = putP ll le lr              -- L subtree BF<>0, H:h->h, parent BF:+1->+1
@@ -303,7 +303,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                                     in rr' `seq` N l e (Z rl re rr')
  putNRR l e rl re (Z rrl rre rrr) = let rr' = putZ rrl rre rrr         -- RR subtree BF= 0, so need to look for changes
                                     in case rr' of
-                                    E       -> error "genPush: Bug6"   -- impossible
+                                    E       -> error "push: Bug6"   -- impossible
                                     Z _ _ _ -> N l e (Z rl re rr')     -- RR subtree BF: 0-> 0, H:h->h, so no change
                                     _       -> Z (Z l e rl) re rr'     -- RR subtree BF: 0->+/-1, H:h->h+1, parent BF:-1->-2, CASE RR !!
 
@@ -316,7 +316,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                                     in ll' `seq` P (Z ll' le lr) e r
  putPLL (Z lll lle llr) le lr e r = let ll' = putZ lll lle llr         -- LL subtree BF= 0, so need to look for changes
                                     in case ll' of
-                                    E       -> error "genPush: Bug7"   -- impossible
+                                    E       -> error "push: Bug7"   -- impossible
                                     Z _ _ _ -> P (Z ll' le lr) e r -- LL subtree BF: 0-> 0, H:h->h, so no change
                                     _       -> Z ll' le (Z lr e r) -- LL subtree BF: 0->+/-1, H:h->h+1, parent BF:-1->-2, CASE LL !!
 
@@ -329,7 +329,7 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                                     in rl' `seq` N l e (Z rl' re rr)
  putNRL l e (Z rll rle rlr) re rr = let rl' = putZ rll rle rlr         -- RL subtree BF= 0, so need to look for changes
                                     in case rl' of
-                                    E                -> error "genPush: Bug8" -- impossible
+                                    E                -> error "push: Bug8" -- impossible
                                     Z _    _    _    -> N l e (Z rl' re rr)                -- RL subtree BF: 0-> 0, H:h->h, so no change
                                     N rll' rle' rlr' -> Z (P l e rll') rle' (Z rlr' re rr) -- RL subtree BF: 0->-1, SO.. CASE RL(1) !!
                                     P rll' rle' rlr' -> Z (Z l e rll') rle' (N rlr' re rr) -- RL subtree BF: 0->+1, SO.. CASE RL(2) !!
@@ -343,23 +343,23 @@ genPush c e0 = put where -- there now follows a huge collection of functions req
                                     in lr' `seq` P (Z ll le lr') e r
  putPLR ll le (Z lrl lre lrr) e r = let lr' = putZ lrl lre lrr         -- LR subtree BF= 0, so need to look for changes
                                     in case lr' of
-                                    E                -> error "genPush: Bug9" -- impossible
+                                    E                -> error "push: Bug9" -- impossible
                                     Z _    _    _    -> P (Z ll le lr') e r                -- LR subtree BF: 0-> 0, H:h->h, so no change
                                     N lrl' lre' lrr' -> Z (P ll le lrl') lre' (Z lrr' e r) -- LR subtree BF: 0->-1, SO.. CASE LR(2) !!
                                     P lrl' lre' lrr' -> Z (Z ll le lrl') lre' (N lrr' e r) -- LR subtree BF: 0->+1, SO.. CASE LR(1) !!
 -----------------------------------------------------------------------
-------------------------- genPush Ends Here ----------------------------
+------------------------- push Ends Here ----------------------------
 -----------------------------------------------------------------------
 
--- | Almost identical to 'genPush', but this version forces evaluation of the default new element
+-- | Almost identical to 'push', but this version forces evaluation of the default new element
 -- (second argument) if no matching element is found. Note that it does /not/ do this if
 -- a matching element is found, because in this case the default new element is discarded
 -- anyway. Note also that it does not force evaluation of any replacement value provided by the
 -- selector (if it returns Eq). (You have to do that yourself if that\'s what you want.)
 --
 -- Complexity: O(log n)
-genPush' :: (e -> COrdering e) -> e -> AVL e -> AVL e
-genPush' c e0 = put where
+push' :: (e -> COrdering e) -> e -> AVL e -> AVL e
+push' c e0 = put where
  ----------------------------- LEVEL 0 ---------------------------------
  --                              put                                  --
  -----------------------------------------------------------------------
@@ -404,7 +404,7 @@ genPush' c e0 = put where
                           in l' `seq` N l' e r
  putNL (Z ll le lr) e r = let l' = putZ ll le lr      -- L subtree BF= 0, so need to look for changes
                           in case l' of
-                          E       -> error "genPush': Bug0" -- impossible
+                          E       -> error "push': Bug0" -- impossible
                           Z _ _ _ -> N l' e r         -- L subtree BF:0-> 0, H:h->h  , parent BF:-1->-1
                           _       -> Z l' e r         -- L subtree BF:0->+/-1, H:h->h+1, parent BF:-1-> 0
 
@@ -417,7 +417,7 @@ genPush' c e0 = put where
                           in l' `seq` Z l' e r
  putZL (Z ll le lr) e r = let l' = putZ ll le lr      -- L subtree BF= 0, so need to look for changes
                           in case l' of
-                          E       -> error "genPush': Bug1" -- impossible
+                          E       -> error "push': Bug1" -- impossible
                           Z _ _ _ -> Z l' e r         -- L subtree BF: 0-> 0, H:h->h  , parent BF: 0-> 0
                           _       -> P l' e r         -- L subtree BF: 0->+/-1, H:h->h+1, parent BF: 0->+1
 
@@ -430,7 +430,7 @@ genPush' c e0 = put where
                           in r' `seq` Z l e r'
  putZR l e (Z rl re rr) = let r' = putZ rl re rr      -- R subtree BF= 0, so need to look for changes
                           in case r' of
-                          E       -> error "genPush': Bug2" -- impossible
+                          E       -> error "push': Bug2" -- impossible
                           Z _ _ _ -> Z l e r'         -- R subtree BF: 0-> 0, H:h->h  , parent BF: 0-> 0
                           _       -> N l e r'         -- R subtree BF: 0->+/-1, H:h->h+1, parent BF: 0->-1
 
@@ -443,7 +443,7 @@ genPush' c e0 = put where
                           in r' `seq` P l e r'
  putPR l e (Z rl re rr) = let r' = putZ rl re rr      -- R subtree BF= 0, so need to look for changes
                           in case r' of
-                          E       -> error "genPush': Bug3" -- impossible
+                          E       -> error "push': Bug3" -- impossible
                           Z _ _ _ -> P l e r'         -- R subtree BF:0-> 0, H:h->h  , parent BF:+1->+1
                           _       -> Z l e r'         -- R subtree BF:0->+/-1, H:h->h+1, parent BF:+1-> 0
 
@@ -451,7 +451,7 @@ genPush' c e0 = put where
 
  -- (putNR l e r): Put in R subtree of (N l e r), BF=-1 , (never returns P)
  {-# INLINE putNR #-}
- putNR _ _ E            = error "genPush': Bug4"              -- impossible if BF=-1
+ putNR _ _ E            = error "push': Bug4"              -- impossible if BF=-1
  putNR l e (N rl re rr) = let r' = putN rl re rr              -- R subtree BF<>0, H:h->h, parent BF:-1->-1
                           in r' `seq` N l e r'
  putNR l e (P rl re rr) = let r' = putP rl re rr              -- R subtree BF<>0, H:h->h, parent BF:-1->-1
@@ -463,7 +463,7 @@ genPush' c e0 = put where
 
  -- (putPL l e r): Put in L subtree of (P l e r), BF=+1 , (never returns N)
  {-# INLINE putPL #-}
- putPL  E           _ _ = error "genPush': Bug5"              -- impossible if BF=+1
+ putPL  E           _ _ = error "push': Bug5"              -- impossible if BF=+1
  putPL (N ll le lr) e r = let l' = putN ll le lr              -- L subtree BF<>0, H:h->h, parent BF:+1->+1
                           in l' `seq` P l' e r
  putPL (P ll le lr) e r = let l' = putP ll le lr              -- L subtree BF<>0, H:h->h, parent BF:+1->+1
@@ -487,7 +487,7 @@ genPush' c e0 = put where
                                     in rr' `seq` N l e (Z rl re rr')
  putNRR l e rl re (Z rrl rre rrr) = let rr' = putZ rrl rre rrr          -- RR subtree BF= 0, so need to look for changes
                                     in case rr' of
-                                    E       -> error "genPush': Bug6"   -- impossible
+                                    E       -> error "push': Bug6"   -- impossible
                                     Z _ _ _ -> N l e (Z rl re rr')      -- RR subtree BF: 0-> 0, H:h->h, so no change
                                     _       -> Z (Z l e rl) re rr'      -- RR subtree BF: 0->+/-1, H:h->h+1, parent BF:-1->-2, CASE RR !!
 
@@ -500,7 +500,7 @@ genPush' c e0 = put where
                                     in ll' `seq` P (Z ll' le lr) e r
  putPLL (Z lll lle llr) le lr e r = let ll' = putZ lll lle llr          -- LL subtree BF= 0, so need to look for changes
                                     in case ll' of
-                                    E       -> error "genPush': Bug7"   -- impossible
+                                    E       -> error "push': Bug7"   -- impossible
                                     Z _ _ _ -> P (Z ll' le lr) e r      -- LL subtree BF: 0-> 0, H:h->h, so no change
                                     _       -> Z ll' le (Z lr e r)      -- LL subtree BF: 0->+/-1, H:h->h+1, parent BF:-1->-2, CASE LL !!
 
@@ -513,7 +513,7 @@ genPush' c e0 = put where
                                     in rl' `seq` N l e (Z rl' re rr)
  putNRL l e (Z rll rle rlr) re rr = let rl' = putZ rll rle rlr          -- RL subtree BF= 0, so need to look for changes
                                     in case rl' of
-                                    E                -> error "genPush': Bug8" -- impossible
+                                    E                -> error "push': Bug8" -- impossible
                                     Z _    _    _    -> N l e (Z rl' re rr)                -- RL subtree BF: 0-> 0, H:h->h, so no change
                                     N rll' rle' rlr' -> Z (P l e rll') rle' (Z rlr' re rr) -- RL subtree BF: 0->-1, SO.. CASE RL(1) !!
                                     P rll' rle' rlr' -> Z (Z l e rll') rle' (N rlr' re rr) -- RL subtree BF: 0->+1, SO.. CASE RL(2) !!
@@ -527,37 +527,37 @@ genPush' c e0 = put where
                                     in lr' `seq` P (Z ll le lr') e r
  putPLR ll le (Z lrl lre lrr) e r = let lr' = putZ lrl lre lrr          -- LR subtree BF= 0, so need to look for changes
                                     in case lr' of
-                                    E                -> error "genPush': Bug9" -- impossible
+                                    E                -> error "push': Bug9" -- impossible
                                     Z _    _    _    -> P (Z ll le lr') e r                -- LR subtree BF: 0-> 0, H:h->h, so no change
                                     N lrl' lre' lrr' -> Z (P ll le lrl') lre' (Z lrr' e r) -- LR subtree BF: 0->-1, SO.. CASE LR(2) !!
                                     P lrl' lre' lrr' -> Z (Z ll le lrl') lre' (N lrr' e r) -- LR subtree BF: 0->+1, SO.. CASE LR(1) !!
 -----------------------------------------------------------------------
-------------------------- genPush' Ends Here ----------------------------
+------------------------- push' Ends Here ----------------------------
 -----------------------------------------------------------------------
 
--- | Similar to 'genPush', but returns the original tree if the combining comparison returns
+-- | Similar to 'push', but returns the original tree if the combining comparison returns
 -- @('Eq' 'Nothing')@. So this function can be used reduce heap burn rate by avoiding duplication
 -- of nodes on the insertion path. But it may also be marginally slower otherwise.
 --
 -- Note that this function is /non-strict/ in it\'s second argument (the default value which
 -- is inserted in the search fails or is discarded if the search succeeds). If you want
--- to force evaluation, but only if it\'s actually incorprated in the tree, then use 'genPushMaybe''
+-- to force evaluation, but only if it\'s actually incorprated in the tree, then use 'pushMaybe''
 --
 -- Complexity: O(log n)
-genPushMaybe :: (e -> COrdering (Maybe e)) -> e -> AVL e -> AVL e
-genPushMaybe c e t = case genOpenPathWith c t of
+pushMaybe :: (e -> COrdering (Maybe e)) -> e -> AVL e -> AVL e
+pushMaybe c e t = case openPathWith c t of
                      FullBP  _ Nothing   -> t
                      FullBP  p (Just e') -> writePath  p e' t
                      EmptyBP p           -> insertPath p e  t
 
--- | Almost identical to 'genPushMaybe', but this version forces evaluation of the default new element
+-- | Almost identical to 'pushMaybe', but this version forces evaluation of the default new element
 -- (second argument) if no matching element is found. Note that it does /not/ do this if
 -- a matching element is found, because in this case the default new element is discarded
 -- anyway.
 --
 -- Complexity: O(log n)
-genPushMaybe' :: (e -> COrdering (Maybe e)) -> e -> AVL e -> AVL e
-genPushMaybe' c e t = case genOpenPathWith c t of
+pushMaybe' :: (e -> COrdering (Maybe e)) -> e -> AVL e -> AVL e
+pushMaybe' c e t = case openPathWith c t of
                       FullBP  _ Nothing   -> t
                       FullBP  p (Just e') -> writePath  p e' t
                       EmptyBP p           -> e `seq` insertPath p e  t
